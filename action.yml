@@ -1,0 +1,43 @@
+name: 'Setup CI Environment'
+description: 'Sets up runner with container images and environment for CI jobs'
+inputs:
+  image1:
+    description: 'First container image'
+    required: true
+  image2:
+    description: 'Second container image'
+    required: false
+    default: ''
+  image3:
+    description: 'Third container image'
+    required: false
+    default: ''
+  env:
+    description: 'Environment variables (multiline)'
+    required: false
+    default: ''
+outputs:
+  scripts_dir:
+    description: 'Directory containing provision.sh, test.sh, cleanup.sh'
+    value: ${{ steps.setup.outputs.scripts_dir }}
+  env_file:
+    description: 'Path to file containing environment variables'
+    value: ${{ steps.setup.outputs.env_file }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup runner environment
+      id: setup
+      shell: bash
+      env:
+        IMAGE1: ${{ inputs.image1 }}
+        IMAGE2: ${{ inputs.image2 }}
+        IMAGE3: ${{ inputs.image3 }}
+        ENV_VARS: ${{ inputs.env }}
+      run: |
+        chmod +x ${{ github.action_path }}/setup.sh
+        ENV_FILE="/tmp/ci_env_$(date +%s).sh"
+        export ENV_FILE
+        ${{ github.action_path }}/setup.sh
+        echo "scripts_dir=${{ github.action_path }}" >> $GITHUB_OUTPUT
+        echo "env_file=$ENV_FILE" >> $GITHUB_OUTPUT
