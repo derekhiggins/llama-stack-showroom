@@ -16,8 +16,7 @@ jobs:
         id: setup
         uses: ./
         with:
-          image1: 'ubuntu:latest'
-          image2: 'alpine:latest'
+          catalog_image: 'quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.2'
           env: |
             ENVIRONMENT=production
             DEPLOY_DATE=${{ github.event.head_commit.timestamp }}

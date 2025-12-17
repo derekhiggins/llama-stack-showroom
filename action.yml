@@ -1,15 +1,16 @@
 name: 'Setup CI Environment'
 description: 'Sets up runner with container images and environment for CI jobs'
 inputs:
-  image1:
-    description: 'First container image'
-    required: true
-  image2:
-    description: 'Second container image'
+  catalog_image:
+    description: 'OLM catalog image'
+    required: false
+    default: 'quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.2'
+  llama_stack_image:
+    description: 'LLS distro image (extracted from catalog if not provided)'
     required: false
     default: ''
-  image3:
-    description: 'Third container image'
+  operator_image:
+    description: 'Operator image (extracted from catalog if not provided)'
     required: false
     default: ''
   env:
@@ -30,9 +31,9 @@ runs:
       id: setup
       shell: bash
       env:
-        IMAGE1: ${{ inputs.image1 }}
-        IMAGE2: ${{ inputs.image2 }}
-        IMAGE3: ${{ inputs.image3 }}
+        CATALOG_IMAGE: ${{ inputs.catalog_image }}
+        LLAMA_STACK_IMAGE: ${{ inputs.llama_stack_image }}
+        OPERATOR_IMAGE: ${{ inputs.operator_image }}
         ENV_VARS: ${{ inputs.env }}
       run: |
         chmod +x ${{ github.action_path }}/setup.sh
