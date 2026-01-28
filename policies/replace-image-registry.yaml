@@ -1,0 +1,55 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: replace-image-registry
+  annotations:
+    policies.kyverno.io/title: Replace Image Registry
+    pod-policies.kyverno.io/autogen-controllers: none
+    policies.kyverno.io/category: Sample
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Force replacement of registry.redhat.io/rhoai/ with quay.io/rhoai/
+spec:
+  background: false
+  failurePolicy: Ignore
+  rules:
+    - name: replace-image-registry-pod-containers
+      match:
+        any:
+        - resources:
+            kinds:
+            - Pod
+      mutate:
+        foreach:
+        - list: "request.object.spec.containers"
+          patchStrategicMerge:
+            metadata:
+              labels:
+                kyverno-replace-image-registry: was-here
+            spec:
+              containers:
+              - name: "{{ element.name }}"
+                image: "{{ regex_replace_all_literal('registry\\.redhat\\.io/rhoai/', '{{element.image}}', 'quay.io/rhoai/' )}}"
+    - name: replace-image-registry-pod-initcontainers
+      match:
+        any:
+        - resources:
+            kinds:
+            - Pod
+      preconditions:
+        all:
+        - key: "{{ request.object.spec.initContainers[] || `[]` | length(@) }}"
+          operator: GreaterThanOrEquals
+          value: 1
+      mutate:
+        foreach:
+        - list: "request.object.spec.initContainers"
+          patchStrategicMerge:
+            metadata:
+              labels:
+                kyverno-replace-image-registry: was-here
+            spec:
+              initContainers:
+              - name: "{{ element.name }}"
+                image: "{{ regex_replace_all_literal('registry\\.redhat\\.io/rhoai/', '{{element.image}}', 'quay.io/rhoai/' )}}"

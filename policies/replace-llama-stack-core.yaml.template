@@ -1,0 +1,40 @@
+  - name: replace-llama-stack-core
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - redhat-ods-applications
+          - opendatahub
+    preconditions:
+      any:
+      - key: "{{ images.containers.*.registry || `[]` }}"
+        operator: AnyIn
+        value:
+        - quay.io
+        - registry.redhat.io
+    mutate:
+      foreach:
+      - list: "request.object.spec.containers"
+        preconditions:
+          any:
+          - key: "{{ regex_match('^(registry\\.redhat\\.io|quay\\.io)/rhoai/odh-llama-stack-core-rhel9', '{{element.image}}') }}"
+            operator: Equals
+            value: true
+        patchStrategicMerge:
+          spec:
+            containers:
+            - name: "{{ element.name }}"
+              image: "${SHOWROOM_LLAMA_STACK_IMAGE}"
+      - list: "request.object.spec.initContainers || `[]`"
+        preconditions:
+          any:
+          - key: "{{ regex_match('^(registry\\.redhat\\.io|quay\\.io)/rhoai/odh-llama-stack-core-rhel9', '{{element.image}}') }}"
+            operator: Equals
+            value: true
+        patchStrategicMerge:
+          spec:
+            initContainers:
+            - name: "{{ element.name }}"
+              image: "${SHOWROOM_LLAMA_STACK_IMAGE}"
