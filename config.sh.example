@@ -1,0 +1,50 @@
+# Configuration file template for llama-stack-showroom
+#
+# This file is sourced by setup.sh from ~/.lls_showroom
+# All values can be overridden by setting the environment variable before running setup.sh
+#
+# SETUP INSTRUCTIONS:
+# 1. Copy this file to your home directory:
+#    cp config.sh.example ~/.lls_showroom
+#
+# 2. Edit ~/.lls_showroom and replace YOUR_USERNAME and YOUR_PASSWORD with your quay.io credentials
+#
+# 3. Generate base64 encoded auth:
+#    echo -n "YOUR_USERNAME:YOUR_PASSWORD" | base64
+#
+# 4. Set SHOWROOM_PULL_SECRET in ~/.lls_showroom to the base64 output
+#
+# 5. Run ./setup.sh
+#
+# REQUIRED: SHOWROOM_PULL_SECRET
+#   Base64 encoded auth for quay.io (format: base64 of "username:password")
+#   Used for HyperShift clusters (OCPBUGS-23901 workaround)
+#
+
+# IMAGE pull secret
+export SHOWROOM_PULL_SECRET="${SHOWROOM_PULL_SECRET:-}"
+
+# RHOAI catalog image
+export SHOWROOM_CATALOG_IMAGE="${SHOWROOM_CATALOG_IMAGE:-quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.3@sha256:ee7cd9a0b862d77817dad56fd30b0fda29767cb7bfd36ed1f9dcc2457cd9e8b2}"
+
+# Llama Stack custom image (optional - set to override default)
+export SHOWROOM_LLAMA_STACK_IMAGE="${SHOWROOM_LLAMA_STACK_IMAGE:-}"
+
+# Operator custom image (optional - set to override default)
+export SHOWROOM_OPERATOR_IMAGE="${SHOWROOM_OPERATOR_IMAGE:-}"
+
+# Operator channel (default: stable-3.3)
+# Available channels: alpha, beta, fast, fast-3.x, stable, stable-3.x, stable-3.3, eus-2.25, etc.
+export SHOWROOM_OPERATOR_CHANNEL="${SHOWROOM_OPERATOR_CHANNEL:-stable-3.3}"
+
+# VLLM Inference configuration
+export SHOWROOM_VLLM_URL="${SHOWROOM_VLLM_URL:-}"
+export SHOWROOM_VLLM_API_TOKEN="${SHOWROOM_VLLM_API_TOKEN:-}"
+export SHOWROOM_INFERENCE_MODEL="${SHOWROOM_INFERENCE_MODEL:-llama-3-2-3b}"
+
+# VLLM Embedding configuration
+export SHOWROOM_VLLM_EMBEDDING_URL="${SHOWROOM_VLLM_EMBEDDING_URL:-}"
+export SHOWROOM_VLLM_EMBEDDING_API_TOKEN="${SHOWROOM_VLLM_EMBEDDING_API_TOKEN:-}"
+export SHOWROOM_EMBEDDING_MODEL="${SHOWROOM_EMBEDDING_MODEL:-nomic-embed-text-v1.5}"
+export SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID="${SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID:-nomic-ai/nomic-embed-text-v1.5}"
+export SHOWROOM_EMBEDDING_DIMENSION="${SHOWROOM_EMBEDDING_DIMENSION:-768}"
