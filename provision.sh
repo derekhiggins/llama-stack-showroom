@@ -166,6 +166,32 @@ while [ $elapsed -lt $timeout ]; do
   fi
 done
 
+# Apply NetworkPolicy to allow ingress
+echo ""
+echo "Applying NetworkPolicy to allow external access..."
+oc apply -f "${SCRIPT_DIR}/templates/networkpolicy-ingress.yaml"
+
+# Apply Route
+echo ""
+echo "=========================================="
+echo "Creating Route for LlamaStack..."
+echo "=========================================="
+echo ""
+
+oc apply -f "${SCRIPT_DIR}/templates/route.yaml"
+
+# Get the route URL
+echo ""
+echo "Waiting for route to be ready..."
+sleep 5
+ROUTE_URL=$(oc get route llamastack-distribution -n redhat-ods-applications -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+if [ -n "$ROUTE_URL" ]; then
+  echo "Route created successfully"
+  echo "LlamaStack URL: https://${ROUTE_URL}"
+else
+  echo "WARNING: Could not retrieve route URL"
+fi
+
 echo ""
 echo "=========================================="
 echo "Provisioning complete!"
@@ -175,7 +201,14 @@ echo "To verify the deployment:"
 echo "  oc get datasciencecluster default-dsc"
 echo "  oc get deployment postgres -n redhat-ods-applications"
 echo "  oc get llamastackdistribution llamastack-distribution -n redhat-ods-applications"
+echo "  oc get route llamastack-distribution -n redhat-ods-applications"
 echo ""
+if [ -n "$ROUTE_URL" ]; then
+  echo "LlamaStack API:"
+  echo "  URL: https://${ROUTE_URL}"
+  echo "  Health: https://${ROUTE_URL}/v1/health"
+  echo ""
+fi
 echo "PostgreSQL connection details:"
 echo "  Host: postgres.redhat-ods-applications.svc.cluster.local"
 echo "  Port: 5432"

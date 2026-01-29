@@ -7,6 +7,14 @@ echo "Unprovisioning CRs..."
 echo "=========================================="
 echo ""
 
+# Delete Route
+echo "Removing Route..."
+oc delete route llamastack-distribution -n redhat-ods-applications --ignore-not-found=true
+
+# Delete NetworkPolicy
+echo "Removing NetworkPolicy..."
+oc delete networkpolicy llamastack-allow-ingress -n redhat-ods-applications --ignore-not-found=true
+
 # Delete LlamaStackDistribution
 echo "Removing LlamaStackDistribution..."
 oc delete llamastackdistribution llamastack-distribution -n redhat-ods-applications --ignore-not-found=true --timeout=60s
