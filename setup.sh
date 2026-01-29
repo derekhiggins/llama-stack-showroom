@@ -1,25 +1,52 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 echo "=========================================="
 echo "Setting up CI environment..."
 echo "=========================================="
 echo ""
 
-# Source configuration
+# Source configuration from user's home directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/config.sh"
+CONFIG_FILE="${HOME}/.lls_showroom"
+
+if [ ! -f "${CONFIG_FILE}" ]; then
+  echo "ERROR: Configuration file not found: ${CONFIG_FILE}"
+  echo ""
+  echo "Please create ${CONFIG_FILE} with your configuration."
+  echo "You can use config.sh.example as a template:"
+  echo ""
+  echo "  cp ${SCRIPT_DIR}/config.sh.example ${CONFIG_FILE}"
+  echo "  # Then edit ${CONFIG_FILE} and add your credentials"
+  echo ""
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+source "${CONFIG_FILE}"
+
+# Allow GitHub Action inputs to override config values
+# If GitHub Action provides values, use them; otherwise keep ~/.lls_showroom defaults
+if [ -n "${CATALOG_IMAGE:-}" ]; then
+  SHOWROOM_CATALOG_IMAGE="${CATALOG_IMAGE}"
+fi
+if [ -n "${LLAMA_STACK_IMAGE:-}" ]; then
+  SHOWROOM_LLAMA_STACK_IMAGE="${LLAMA_STACK_IMAGE}"
+fi
+if [ -n "${OPERATOR_IMAGE:-}" ]; then
+  SHOWROOM_OPERATOR_IMAGE="${OPERATOR_IMAGE}"
+fi
 
 # Function to wait for Kyverno webhooks to be ready
 wait_for_kyverno_webhooks() {
   local check_mutating="${1:-false}"
-  
+
   echo "Waiting for Kyverno webhook to be ready..."
   sleep 10
   local timeout=60
   local elapsed=0
-  
+
   while [ $elapsed -lt $timeout ]; do
     if [ "$check_mutating" = "true" ]; then
       if oc get validatingwebhookconfigurations kyverno-policy-validating-webhook-cfg &>/dev/null && \
@@ -36,7 +63,7 @@ wait_for_kyverno_webhooks() {
     sleep 2
     elapsed=$((elapsed + 2))
   done
-  
+
   echo "Warning: Timeout waiting for Kyverno webhooks"
   return 0
 }
@@ -47,7 +74,7 @@ apply_with_retry() {
   local yaml_content="$2"
   local retry_count=0
   local max_retries=5
-  
+
   while [ $retry_count -lt $max_retries ]; do
     if echo "$yaml_content" | oc apply -f - 2>&1; then
       return 0
@@ -84,7 +111,7 @@ TMP_DIR=$(mktemp -d)
 oc get -n openshift-config secret/pull-secret -o yaml | yq .data[.dockerconfigjson] | base64 -d | jq . > "${TMP_DIR}/pull-secret.json"
 
 # Add SHOWROOM_PULL_SECRET for quay.io registries
-jq ".auths[\"quay.io\"] = {\"auth\": \"${SHOWROOM_PULL_SECRET}\"} | 
+jq ".auths[\"quay.io\"] = {\"auth\": \"${SHOWROOM_PULL_SECRET}\"} |
     .auths[\"quay.io/rhoai\"] = {\"auth\": \"${SHOWROOM_PULL_SECRET}\"}" \
     "${TMP_DIR}/pull-secret.json" > "${TMP_DIR}/pull-secret.tmp"
 mv "${TMP_DIR}/pull-secret.tmp" "${TMP_DIR}/pull-secret.json"
@@ -153,22 +180,22 @@ if oc get deployment kyverno-admission-controller -n kyverno &>/dev/null; then
   wait_for_kyverno_webhooks
 else
   echo "Installing Kyverno..."
-  
+
   # Create namespace
   oc create namespace kyverno --dry-run=client -o yaml | oc apply -f -
-  
+
   # Install Kyverno using official manifest with server-side apply
   KYVERNO_VERSION="v1.12.1"
   echo "Installing Kyverno ${KYVERNO_VERSION}..."
   oc apply -f "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/install.yaml" --server-side=true --force-conflicts=true
-  
+
   echo ""
   echo "Waiting for Kyverno to be ready..."
   oc wait --for=condition=available --timeout=300s deployment/kyverno-admission-controller -n kyverno
   oc wait --for=condition=available --timeout=300s deployment/kyverno-background-controller -n kyverno
   oc wait --for=condition=available --timeout=300s deployment/kyverno-cleanup-controller -n kyverno
   oc wait --for=condition=available --timeout=300s deployment/kyverno-reports-controller -n kyverno
-  
+
   echo ""
   wait_for_kyverno_webhooks true
 fi
@@ -201,13 +228,13 @@ if [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ] || [ -n "$SHOWROOM_OPERATOR_IMAGE" ]; th
   echo "Setting up custom image replacement..."
   echo "=========================================="
   echo ""
-  
+
   echo "Applying custom image replacement policy..."
   echo "Custom images:"
   [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ] && echo "  o Llama Stack: ${SHOWROOM_LLAMA_STACK_IMAGE}"
   [ -n "$SHOWROOM_OPERATOR_IMAGE" ] && echo "  o Operator: ${SHOWROOM_OPERATOR_IMAGE}"
   echo ""
-  
+
   # Build the policy YAML from templates
   POLICY_YAML="apiVersion: kyverno.io/v1
 kind: ClusterPolicy

@@ -4,7 +4,7 @@ inputs:
   catalog_image:
     description: 'OLM catalog image'
     required: false
-    default: 'quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.2'
+    default: ''
   llama_stack_image:
     description: 'LLS distro image (extracted from catalog if not provided)'
     required: false

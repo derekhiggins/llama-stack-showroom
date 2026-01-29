@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup CI environment
         id: setup
         uses: ./
@@ -20,7 +20,7 @@ jobs:
           env: |
             ENVIRONMENT=production
             DEPLOY_DATE=${{ github.event.head_commit.timestamp }}
-      
+
       - name: Provision
         shell: bash
         env:
@@ -28,7 +28,7 @@ jobs:
         run: |
           chmod +x ${{ steps.setup.outputs.scripts_dir }}/provision.sh
           ${{ steps.setup.outputs.scripts_dir }}/provision.sh
-      
+
       - name: Test
         shell: bash
         env:
@@ -36,7 +36,7 @@ jobs:
         run: |
           chmod +x ${{ steps.setup.outputs.scripts_dir }}/test.sh
           ${{ steps.setup.outputs.scripts_dir }}/test.sh
-      
+
       - name: Cleanup
         if: always()
         shell: bash
