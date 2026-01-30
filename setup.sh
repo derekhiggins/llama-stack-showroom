@@ -328,5 +328,49 @@ done
 
 echo ""
 echo "=========================================="
+echo "Extracting default config.yaml..."
+echo "=========================================="
+echo ""
+
+# Determine the image to use for config extraction
+if [ -n "${SHOWROOM_LLAMA_STACK_IMAGE:-}" ]; then
+  CONFIG_IMAGE="${SHOWROOM_LLAMA_STACK_IMAGE}"
+else
+  # Get the image from the operator CSV
+  echo "Retrieving llama-stack image from operator catalog..."
+  CSV_NAME=$(oc get csv -n redhat-ods-operator -o json 2>/dev/null | jq -r '.items[] | select(.metadata.name | startswith("rhods-operator")) | .metadata.name' | head -1)
+  if [ -n "${CSV_NAME}" ]; then
+    CONFIG_IMAGE=$(oc get csv "${CSV_NAME}" -n redhat-ods-operator -o jsonpath='{.spec.relatedImages[?(@.name=="odh_llama_stack_core_image")].image}' 2>/dev/null)
+  fi
+
+  if [ -z "${CONFIG_IMAGE}" ]; then
+    echo "ERROR: Could not determine llama-stack image from catalog"
+    echo "Please set SHOWROOM_LLAMA_STACK_IMAGE in your config or ensure the operator is installed"
+    exit 1
+  fi
+fi
+
+echo "Extracting config from: ${CONFIG_IMAGE}"
+echo ""
+
+# Extract config.yaml using a temporary pod
+# Note: --rm outputs deletion message to stdout, so we filter it out
+if oc run temp-config-extractor \
+  --image="${CONFIG_IMAGE}" \
+  --restart=Never --rm -i --command -- cat /opt/app-root/config.yaml 2>&1 | \
+  grep -v "pod \"temp-config-extractor\" deleted" > "${SCRIPT_DIR}/config.yaml"; then
+  echo "Config extracted successfully to ${SCRIPT_DIR}/config.yaml"
+
+  # Copy config.yaml to reference overlay directory
+  echo "Copying config.yaml to reference overlay..."
+  cp "${SCRIPT_DIR}/config.yaml" "${SCRIPT_DIR}/kustomize/overlays/reference/config.yaml"
+  echo "Config copied to kustomize/overlays/reference/config.yaml"
+else
+  echo "Warning: Failed to extract config.yaml"
+  exit 1
+fi
+
+echo ""
+echo "=========================================="
 echo "Setup complete!"
 echo "=========================================="

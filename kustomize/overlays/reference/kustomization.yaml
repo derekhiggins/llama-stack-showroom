@@ -5,7 +5,19 @@ namespace: redhat-ods-applications
 
 resources:
 - ../../base
+- keycloak.yaml
 
-# Use reference-specific LlamaStackDistribution
+# Generate ConfigMap from the extracted config.yaml
+# This ConfigMap will be mounted by the LlamaStackDistribution
+# Note: config.yaml is created by setup.sh during the setup process
+# disableNameSuffixHash prevents kustomize from adding a hash to the name
+configMapGenerator:
+- name: llamastack-config
+  files:
+  - config.yaml
+  options:
+    disableNameSuffixHash: true
+
+# Use reference-specific LlamaStackDistribution with Keycloak
 patches:
 - path: llamastackdistribution.yaml

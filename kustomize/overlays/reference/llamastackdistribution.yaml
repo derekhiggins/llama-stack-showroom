@@ -48,6 +48,13 @@ spec:
           secretKeyRef:
             name: postgres-secret
             key: POSTGRES_PASSWORD
+      # Keycloak OAuth/OIDC Configuration for ABAC
+      - name: KEYCLOAK_URL
+        value: http://keycloak:8080
+      - name: KEYCLOAK_ISSUER_URL
+        value: http://keycloak:8080
+      - name: KEYCLOAK_VERIFY_TLS
+        value: "false"
       name: llama-stack
       port: 8321
       resources:
@@ -59,3 +66,6 @@ spec:
           cpu: "1000m"
     distribution:
       name: rh-dev
+    # Reference the ConfigMap with the llama-stack configuration
+    userConfig:
+      configMapName: llamastack-config

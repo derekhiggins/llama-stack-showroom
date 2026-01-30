@@ -3,16 +3,21 @@
 LlamaStack Chat and Embeddings Demo
 
 This script demonstrates how to:
-1. List available models (inference and embedding)
-2. Generate embeddings for documents
-3. Perform simple semantic search
-4. Generate answers using chat completions
+1. Authenticate with Keycloak to get a JWT token
+2. List available models (inference and embedding)
+3. Generate embeddings for documents
+4. Perform simple semantic search
+5. Generate answers using chat completions
 
 Usage:
-    python scripts/rag-demo.py <LLAMASTACK_URL>
+    python scripts/rag-demo.py <LLAMASTACK_URL> [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
 
 Example:
-    python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com
+    python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com \
+        https://keycloak-redhat-ods-applications.apps.example.com \
+        developer dev123 <client-secret>
+
+If Keycloak parameters are not provided, the script will attempt to run without authentication.
 
 Note: This is a simplified demo. For production RAG, consider using vector databases
 with the LlamaStack vector-io API or vector_stores endpoints.
@@ -22,14 +27,59 @@ import sys
 import requests
 import json
 import numpy as np
-from typing import List, Dict, Any, Tuple
+import os
+from typing import List, Dict, Any, Tuple, Optional
 
 
 class LlamaStackDemo:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, keycloak_url: Optional[str] = None,
+                 username: Optional[str] = None, password: Optional[str] = None,
+                 client_secret: Optional[str] = None):
         self.base_url = base_url.rstrip('/')
+        self.keycloak_url = keycloak_url.rstrip('/') if keycloak_url else None
+        self.username = username
+        self.password = password
+        self.client_secret = client_secret
         self.session = requests.Session()
         self.session.verify = True  # Enable SSL verification
+
+        # Get token if Keycloak credentials are provided
+        if self.keycloak_url and self.username and self.password and self.client_secret:
+            self.authenticate()
+
+    def authenticate(self) -> bool:
+        """Get JWT token from Keycloak"""
+        try:
+            token_url = f"{self.keycloak_url}/realms/llamastack-demo/protocol/openid-connect/token"
+
+            payload = {
+                'client_id': 'llamastack',
+                'client_secret': self.client_secret,
+                'username': self.username,
+                'password': self.password,
+                'grant_type': 'password'
+            }
+
+            print(f"\n🔐 Authenticating with Keycloak as '{self.username}'...")
+            response = requests.post(token_url, data=payload, verify=True)
+            response.raise_for_status()
+
+            token_data = response.json()
+            access_token = token_data.get('access_token')
+
+            if access_token:
+                self.session.headers.update({'Authorization': f'Bearer {access_token}'})
+                print(f"✓ Authentication successful({access_token})")
+                print(f"  Token type: {token_data.get('token_type', 'Bearer')}")
+                print(f"  Expires in: {token_data.get('expires_in', 'unknown')} seconds")
+                return True
+            else:
+                print(f"✗ No access token in response")
+                return False
+
+        except Exception as e:
+            print(f"✗ Authentication failed: {e}")
+            return False
 
     def check_health(self) -> bool:
         """Check if LlamaStack API is healthy"""
@@ -145,20 +195,32 @@ class LlamaStackDemo:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python scripts/rag-demo.py <LLAMASTACK_URL>")
-        print("\nExample:")
+        print("Usage: python scripts/rag-demo.py <LLAMASTACK_URL> [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]")
+        print("\nExample without authentication:")
         print("  python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com")
+        print("\nExample with Keycloak authentication:")
+        print("  python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com \\")
+        print("      https://keycloak-redhat-ods-applications.apps.example.com \\")
+        print("      developer dev123 <client-secret>")
+        print("\nNote: You can also set KEYCLOAK_CLIENT_SECRET environment variable instead of passing it as argument")
         sys.exit(1)
 
     llamastack_url = sys.argv[1]
+    keycloak_url = sys.argv[2] if len(sys.argv) > 2 else None
+    username = sys.argv[3] if len(sys.argv) > 3 else None
+    password = sys.argv[4] if len(sys.argv) > 4 else None
+    client_secret = sys.argv[5] if len(sys.argv) > 5 else os.environ.get('KEYCLOAK_CLIENT_SECRET')
 
     print("=" * 60)
     print("LlamaStack Chat and Embeddings Demo")
     print("=" * 60)
     print(f"\nConnecting to: {llamastack_url}")
+    if keycloak_url:
+        print(f"Keycloak URL: {keycloak_url}")
+        print(f"Username: {username}")
 
     # Initialize the demo
-    demo = LlamaStackDemo(llamastack_url)
+    demo = LlamaStackDemo(llamastack_url, keycloak_url, username, password, client_secret)
 
     # Check health
     if not demo.check_health():
