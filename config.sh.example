@@ -9,16 +9,11 @@
 #
 # 2. Edit ~/.lls_showroom and replace YOUR_USERNAME and YOUR_PASSWORD with your quay.io credentials
 #
-# 3. Generate base64 encoded auth:
-#    echo -n "YOUR_USERNAME:YOUR_PASSWORD" | base64
+# 3. Set SHOWROOM_PULL_SECRET in ~/.lls_showroom to the base64 output
 #
-# 4. Set SHOWROOM_PULL_SECRET in ~/.lls_showroom to the base64 output
-#
-# 5. Run ./setup.sh
+# 4. Run ./setup.sh
 #
 # REQUIRED: SHOWROOM_PULL_SECRET
-#   Base64 encoded auth for quay.io (format: base64 of "username:password")
-#   Used for HyperShift clusters (OCPBUGS-23901 workaround)
 #
 
 # IMAGE pull secret

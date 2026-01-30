@@ -3,11 +3,14 @@
 set -euo pipefail
 
 echo "=========================================="
-echo "Provisioning CRs..."
+echo "Provisioning with Kustomize..."
 echo "=========================================="
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Default overlay
+OVERLAY="${1:-reference}"
 
 # Source configuration if available
 CONFIG_FILE="${HOME}/.lls_showroom"
@@ -40,6 +43,7 @@ if [ -n "${VLLM_EMBEDDING_API_TOKEN:-}" ]; then
 fi
 
 echo "Configuration:"
+echo "  Overlay: ${OVERLAY}"
 [ -n "${SHOWROOM_CATALOG_IMAGE:-}" ] && echo "  Catalog Image: $SHOWROOM_CATALOG_IMAGE"
 [ -n "${SHOWROOM_LLAMA_STACK_IMAGE:-}" ] && echo "  Llama Stack Image: $SHOWROOM_LLAMA_STACK_IMAGE"
 [ -n "${SHOWROOM_OPERATOR_IMAGE:-}" ] && echo "  Operator Image: $SHOWROOM_OPERATOR_IMAGE"
@@ -49,13 +53,60 @@ echo "Configuration:"
 [ -n "${SHOWROOM_VLLM_EMBEDDING_API_TOKEN:-}" ] && echo "  Embedding Token: ${SHOWROOM_VLLM_EMBEDDING_API_TOKEN:0:8}..."
 echo ""
 
-# Apply DataScienceCluster
+# Validate required configuration
+if [ -z "${SHOWROOM_VLLM_URL:-}" ] || [ -z "${SHOWROOM_VLLM_API_TOKEN:-}" ]; then
+  echo "ERROR: VLLM inference configuration is required"
+  echo "Please set SHOWROOM_VLLM_URL and SHOWROOM_VLLM_API_TOKEN in ${CONFIG_FILE}"
+  exit 1
+fi
+
+if [ -z "${SHOWROOM_VLLM_EMBEDDING_URL:-}" ] || [ -z "${SHOWROOM_VLLM_EMBEDDING_API_TOKEN:-}" ]; then
+  echo "ERROR: VLLM embedding configuration is required"
+  echo "Please set SHOWROOM_VLLM_EMBEDDING_URL and SHOWROOM_VLLM_EMBEDDING_API_TOKEN in ${CONFIG_FILE}"
+  exit 1
+fi
+
+# Check if kustomize is available (either standalone or via kubectl)
+KUSTOMIZE_CMD=""
+if command -v kustomize &> /dev/null; then
+  KUSTOMIZE_CMD="kustomize"
+elif command -v kubectl &> /dev/null && kubectl kustomize --help &> /dev/null; then
+  KUSTOMIZE_CMD="kubectl kustomize"
+else
+  echo "ERROR: kustomize is not available"
+  echo "Please install either:"
+  echo "  - kustomize: https://kubectl.docs.kubernetes.io/installation/kustomize/"
+  echo "  - or kubectl with kustomize support"
+  exit 1
+fi
+echo "Using: ${KUSTOMIZE_CMD}"
+
+# Validate overlay exists
+OVERLAY_PATH="${SCRIPT_DIR}/kustomize/overlays/${OVERLAY}"
+if [ ! -d "${OVERLAY_PATH}" ]; then
+  echo "ERROR: Overlay '${OVERLAY}' not found at ${OVERLAY_PATH}"
+  echo "Available overlays:"
+  ls -1 "${SCRIPT_DIR}/kustomize/overlays/"
+  exit 1
+fi
+
+# Source overlay config.env if it exists
+if [ -f "${OVERLAY_PATH}/config.env" ]; then
+  echo "Loading overlay configuration from ${OVERLAY}/config.env"
+  set -a  # Export all variables
+  # shellcheck source=/dev/null
+  source "${OVERLAY_PATH}/config.env"
+  set +a
+fi
+
 echo "=========================================="
-echo "Applying DataScienceCluster CR..."
+echo "Building and applying manifests..."
 echo "=========================================="
 echo ""
 
-oc apply -f "${SCRIPT_DIR}/templates/datasciencecluster.yaml"
+# Build with kustomize and apply
+# Note: We still use envsubst to substitute secrets from environment
+${KUSTOMIZE_CMD} "${OVERLAY_PATH}" | envsubst | oc apply -f -
 
 echo ""
 echo "Waiting for DataScienceCluster to be ready..."
@@ -94,15 +145,6 @@ while [ $elapsed -lt $timeout ]; do
   fi
 done
 
-# Apply PostgreSQL
-echo ""
-echo "=========================================="
-echo "Deploying PostgreSQL..."
-echo "=========================================="
-echo ""
-
-oc apply -f "${SCRIPT_DIR}/templates/postgres.yaml"
-
 echo ""
 echo "Waiting for PostgreSQL to be ready..."
 timeout=300
@@ -121,29 +163,6 @@ while [ $elapsed -lt $timeout ]; do
     exit 1
   fi
 done
-
-# Apply LlamaStackDistribution
-echo ""
-echo "=========================================="
-echo "Applying LlamaStackDistribution CR..."
-echo "=========================================="
-echo ""
-
-# Validate required configuration
-if [ -z "${SHOWROOM_VLLM_URL:-}" ] || [ -z "${SHOWROOM_VLLM_API_TOKEN:-}" ]; then
-  echo "ERROR: VLLM inference configuration is required"
-  echo "Please set SHOWROOM_VLLM_URL and SHOWROOM_VLLM_API_TOKEN in ${CONFIG_FILE}"
-  exit 1
-fi
-
-if [ -z "${SHOWROOM_VLLM_EMBEDDING_URL:-}" ] || [ -z "${SHOWROOM_VLLM_EMBEDDING_API_TOKEN:-}" ]; then
-  echo "ERROR: VLLM embedding configuration is required"
-  echo "Please set SHOWROOM_VLLM_EMBEDDING_URL and SHOWROOM_VLLM_EMBEDDING_API_TOKEN in ${CONFIG_FILE}"
-  exit 1
-fi
-
-# Apply template with environment variable substitution
-envsubst < "${SCRIPT_DIR}/templates/llsd.yaml.template" | oc apply -f -
 
 echo ""
 echo "Waiting for LlamaStackDistribution to be ready..."
@@ -165,20 +184,6 @@ while [ $elapsed -lt $timeout ]; do
     break
   fi
 done
-
-# Apply NetworkPolicy to allow ingress
-echo ""
-echo "Applying NetworkPolicy to allow external access..."
-oc apply -f "${SCRIPT_DIR}/templates/networkpolicy-ingress.yaml"
-
-# Apply Route
-echo ""
-echo "=========================================="
-echo "Creating Route for LlamaStack..."
-echo "=========================================="
-echo ""
-
-oc apply -f "${SCRIPT_DIR}/templates/route.yaml"
 
 # Get the route URL
 echo ""

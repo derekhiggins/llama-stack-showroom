@@ -1,0 +1,54 @@
+apiVersion: llamastack.io/v1alpha1
+kind: LlamaStackDistribution
+metadata:
+  name: llamastack-distribution
+spec:
+  replicas: 1
+  server:
+    containerSpec:
+      env:
+      - name: INFERENCE_MODEL
+        value: PLACEHOLDER_INFERENCE_MODEL
+      - name: VLLM_API_TOKEN
+        value: PLACEHOLDER_VLLM_API_TOKEN
+      - name: VLLM_URL
+        value: PLACEHOLDER_VLLM_URL
+      - name: EMBEDDING_MODEL
+        value: PLACEHOLDER_EMBEDDING_MODEL
+      - name: EMBEDDING_PROVIDER
+        value: vllm-embedding
+      - name: EMBEDDING_PROVIDER_MODEL_ID
+        value: PLACEHOLDER_EMBEDDING_PROVIDER_MODEL_ID
+      - name: EMBEDDING_DIMENSION
+        value: "PLACEHOLDER_EMBEDDING_DIMENSION"
+      - name: VLLM_EMBEDDING_URL
+        value: PLACEHOLDER_VLLM_EMBEDDING_URL
+      - name: VLLM_EMBEDDING_API_TOKEN
+        value: PLACEHOLDER_VLLM_EMBEDDING_API_TOKEN
+      - name: VLLM_EMBEDDING_MAX_TOKENS
+        value: "4096"
+      - name: VLLM_EMBEDDING_TLS_VERIFY
+        value: "true"
+      - name: POSTGRES_HOST
+        value: postgres
+      - name: POSTGRES_PORT
+        value: "5432"
+      - name: POSTGRES_DB
+        valueFrom:
+          secretKeyRef:
+            name: postgres-secret
+            key: POSTGRES_DB
+      - name: POSTGRES_USER
+        valueFrom:
+          secretKeyRef:
+            name: postgres-secret
+            key: POSTGRES_USER
+      - name: POSTGRES_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: postgres-secret
+            key: POSTGRES_PASSWORD
+      name: llama-stack
+      port: 8321
+    distribution:
+      name: rh-dev

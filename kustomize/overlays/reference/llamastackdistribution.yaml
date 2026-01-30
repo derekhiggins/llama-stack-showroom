@@ -2,26 +2,25 @@ apiVersion: llamastack.io/v1alpha1
 kind: LlamaStackDistribution
 metadata:
   name: llamastack-distribution
-  namespace: redhat-ods-applications
 spec:
   replicas: 1
   server:
     containerSpec:
       env:
       - name: INFERENCE_MODEL
-        value: ${SHOWROOM_INFERENCE_MODEL}
+        value: ${INFERENCE_MODEL}
       - name: VLLM_API_TOKEN
         value: ${SHOWROOM_VLLM_API_TOKEN}
       - name: VLLM_URL
         value: ${SHOWROOM_VLLM_URL}
       - name: EMBEDDING_MODEL
-        value: ${SHOWROOM_EMBEDDING_MODEL}
+        value: ${EMBEDDING_MODEL}
       - name: EMBEDDING_PROVIDER
         value: vllm-embedding
       - name: EMBEDDING_PROVIDER_MODEL_ID
-        value: ${SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID}
+        value: ${EMBEDDING_PROVIDER_MODEL_ID}
       - name: EMBEDDING_DIMENSION
-        value: "${SHOWROOM_EMBEDDING_DIMENSION}"
+        value: ${EMBEDDING_DIMENSION}
       - name: VLLM_EMBEDDING_URL
         value: ${SHOWROOM_VLLM_EMBEDDING_URL}
       - name: VLLM_EMBEDDING_API_TOKEN
@@ -51,5 +50,12 @@ spec:
             key: POSTGRES_PASSWORD
       name: llama-stack
       port: 8321
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
     distribution:
       name: rh-dev

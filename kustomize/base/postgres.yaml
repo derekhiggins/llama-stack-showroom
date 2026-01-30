@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-secret
-  namespace: redhat-ods-applications
 type: Opaque
 stringData:
   POSTGRES_USER: llamastack
@@ -13,19 +12,17 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: redhat-ods-applications
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 20Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: redhat-ods-applications
   labels:
     app: postgres
 spec:
@@ -65,11 +62,11 @@ spec:
           mountPath: /var/lib/pgsql/data
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
             memory: "512Mi"
             cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
       volumes:
       - name: postgres-storage
         persistentVolumeClaim:
@@ -79,7 +76,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: redhat-ods-applications
   labels:
     app: postgres
 spec:

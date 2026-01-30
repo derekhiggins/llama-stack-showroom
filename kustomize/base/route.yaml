@@ -2,7 +2,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: llamastack-distribution
-  namespace: redhat-ods-applications
   labels:
     app: llamastack-distribution
 spec:
