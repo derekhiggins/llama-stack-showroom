@@ -126,48 +126,8 @@ rm -rf "${TMP_DIR}"
 echo "Pull secret created successfully"
 echo "Note: All registry.redhat.io/rhoai/ images will be rewritten to quay.io/rhoai/"
 
-echo ""
-echo "Adding catalog to cluster..."
-echo "  Catalog Image: ${SHOWROOM_CATALOG_IMAGE}"
-echo ""
-
-oc apply -f - <<EOF
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: rhoai-catalog
-  namespace: openshift-marketplace
-spec:
-  sourceType: grpc
-  image: ${SHOWROOM_CATALOG_IMAGE}
-  displayName: RHOAI Catalog
-  publisher: Red Hat
-  updateStrategy:
-    registryPoll:
-      interval: 10m
-EOF
-
-echo ""
-echo "Waiting for catalog to be ready..."
-timeout=300
-elapsed=0
-while [ $elapsed -lt $timeout ]; do
-  if oc get pod -l olm.catalogSource=rhoai-catalog -n openshift-marketplace -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null | grep -q .; then
-    echo "Catalog pod is running"
-    break
-  fi
-  sleep 5
-  elapsed=$((elapsed + 5))
-  if [ $elapsed -ge $timeout ]; then
-    echo "ERROR: Timeout waiting for catalog pod to be ready"
-    exit 1
-  fi
-done
-
-echo ""
-echo "Catalog setup complete!"
-
 # Setup Kyverno for Rosa workaround (OCPBUGS-23901)
+# Must be done before creating catalog so pods get imagePullSecrets injected
 echo ""
 echo "=========================================="
 echo "Setting up Kyverno policies..."
@@ -270,6 +230,76 @@ $(envsubst < "${SCRIPT_DIR}/policies/replace-llama-stack-operator.yaml.template"
     exit 1
   fi
 fi
+
+echo ""
+echo "Adding catalog to cluster..."
+echo "  Catalog Image: ${SHOWROOM_CATALOG_IMAGE}"
+echo ""
+
+oc apply -f - <<EOF
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: rhoai-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: ${SHOWROOM_CATALOG_IMAGE}
+  displayName: RHOAI Catalog
+  publisher: Red Hat
+  updateStrategy:
+    registryPoll:
+      interval: 10m
+EOF
+
+echo ""
+echo "Waiting for catalog to be ready..."
+timeout=300
+elapsed=0
+while [ $elapsed -lt $timeout ]; do
+  if oc get pod -l olm.catalogSource=rhoai-catalog -n openshift-marketplace -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null | grep -q .; then
+    echo "Catalog pod is running"
+    break
+  fi
+  sleep 5
+  elapsed=$((elapsed + 5))
+  if [ $elapsed -ge $timeout ]; then
+    echo "ERROR: Timeout waiting for catalog pod to be ready"
+    exit 1
+  fi
+done
+
+echo ""
+echo "Catalog setup complete!"
+
+echo ""
+echo "=========================================="
+echo "Pre-install cleanup..."
+echo "=========================================="
+echo ""
+
+# Clean up stale webhooks from previous installs (they can block operations)
+echo "Removing stale RHOAI webhooks..."
+oc delete validatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
+oc delete mutatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
+
+# Clean up stale cluster-scoped resources
+echo "Removing stale DSCInitialization resources..."
+oc delete dscinitializations --all --ignore-not-found=true 2>/dev/null || true
+
+echo "Removing stale DataScienceCluster resources..."
+oc delete datasciencecluster --all --ignore-not-found=true 2>/dev/null || true
+
+# Fix CRD version conflicts from previous installs
+for crd in dscinitializations.dscinitialization.opendatahub.io datascienceclusters.datasciencecluster.opendatahub.io; do
+  if oc get crd "$crd" &>/dev/null; then
+    stored_versions=$(oc get crd "$crd" -o jsonpath='{.status.storedVersions}')
+    if echo "$stored_versions" | grep -q "v2"; then
+      echo "Fixing CRD version conflict for $crd..."
+      oc patch crd "$crd" --type='merge' -p '{"status":{"storedVersions":["v1"]}}' --subresource=status 2>/dev/null || true
+    fi
+  fi
+done
 
 echo ""
 echo "=========================================="

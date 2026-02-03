@@ -14,6 +14,18 @@ oc delete subscription rhods-operator -n redhat-ods-operator --ignore-not-found=
 echo "Removing RHOAI operator CSV..."
 oc delete csv -l operators.coreos.com/rhods-operator.redhat-ods-operator -n redhat-ods-operator --ignore-not-found=true
 
+# Remove RHOAI webhooks before deleting resources (they can block deletion)
+echo "Removing RHOAI webhooks..."
+oc delete validatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
+oc delete mutatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
+
+# Clean up cluster-scoped RHOAI resources
+echo "Removing DataScienceCluster..."
+oc delete datasciencecluster --all --ignore-not-found=true 2>/dev/null || true
+
+echo "Removing DSCInitialization..."
+oc delete dscinitializations --all --ignore-not-found=true 2>/dev/null || true
+
 echo "Removing RHOAI operator namespace..."
 oc delete namespace redhat-ods-operator --ignore-not-found=true
 
@@ -47,6 +59,13 @@ oc delete clusterpolicy replace-rhoai-llama-stack-images --ignore-not-found=true
 oc delete clusterpolicy sync-secrets --ignore-not-found=true
 oc delete clusterpolicy add-imagepullsecrets --ignore-not-found=true
 oc delete clusterpolicy replace-image-registry --ignore-not-found=true
+
+# Clean up RHOAI CRDs to avoid version conflicts on reinstall
+echo "Removing RHOAI CRDs..."
+oc delete crd \
+  datascienceclusters.datasciencecluster.opendatahub.io \
+  dscinitializations.dscinitialization.opendatahub.io \
+  --ignore-not-found=true 2>/dev/null || true
 
 echo ""
 echo "Cleanup complete!"
