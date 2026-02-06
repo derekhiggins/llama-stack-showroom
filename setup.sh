@@ -273,35 +273,6 @@ echo "Catalog setup complete!"
 
 echo ""
 echo "=========================================="
-echo "Pre-install cleanup..."
-echo "=========================================="
-echo ""
-
-# Clean up stale webhooks from previous installs (they can block operations)
-echo "Removing stale RHOAI webhooks..."
-oc delete validatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
-oc delete mutatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
-
-# Clean up stale cluster-scoped resources
-echo "Removing stale DSCInitialization resources..."
-oc delete dscinitializations --all --ignore-not-found=true 2>/dev/null || true
-
-echo "Removing stale DataScienceCluster resources..."
-oc delete datasciencecluster --all --ignore-not-found=true 2>/dev/null || true
-
-# Fix CRD version conflicts from previous installs
-for crd in dscinitializations.dscinitialization.opendatahub.io datascienceclusters.datasciencecluster.opendatahub.io; do
-  if oc get crd "$crd" &>/dev/null; then
-    stored_versions=$(oc get crd "$crd" -o jsonpath='{.status.storedVersions}')
-    if echo "$stored_versions" | grep -q "v2"; then
-      echo "Fixing CRD version conflict for $crd..."
-      oc patch crd "$crd" --type='merge' -p '{"status":{"storedVersions":["v1"]}}' --subresource=status 2>/dev/null || true
-    fi
-  fi
-done
-
-echo ""
-echo "=========================================="
 echo "Installing RHOAI Operator..."
 echo "=========================================="
 echo ""
