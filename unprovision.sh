@@ -30,6 +30,17 @@ oc delete secret postgres-secret -n redhat-ods-applications --ignore-not-found=t
 echo "Removing DataScienceCluster..."
 oc delete datasciencecluster default-dsc --ignore-not-found=true --timeout=60s
 
+# Delete DSCInitialization
+echo "Removing DSCInitialization..."
+oc delete dscinitializations --all --ignore-not-found=true --timeout=60s
+
+# Delete Keycloak resources (if reference overlay was used)
+echo "Removing Keycloak resources..."
+oc delete deployment keycloak -n redhat-ods-applications --ignore-not-found=true --timeout=60s
+oc delete service keycloak -n redhat-ods-applications --ignore-not-found=true
+oc delete route keycloak -n redhat-ods-applications --ignore-not-found=true
+oc delete configmap keycloak-import -n redhat-ods-applications --ignore-not-found=true
+
 echo ""
 echo "=========================================="
 echo "Unprovisioning complete!"

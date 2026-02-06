@@ -19,13 +19,6 @@ echo "Removing RHOAI webhooks..."
 oc delete validatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
 oc delete mutatingwebhookconfiguration -l olm.owner.namespace=redhat-ods-operator --ignore-not-found=true 2>/dev/null || true
 
-# Clean up cluster-scoped RHOAI resources
-echo "Removing DataScienceCluster..."
-oc delete datasciencecluster --all --ignore-not-found=true 2>/dev/null || true
-
-echo "Removing DSCInitialization..."
-oc delete dscinitializations --all --ignore-not-found=true 2>/dev/null || true
-
 echo "Removing RHOAI operator namespace..."
 oc delete namespace redhat-ods-operator --ignore-not-found=true
 
