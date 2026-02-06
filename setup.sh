@@ -43,7 +43,6 @@ wait_for_kyverno_webhooks() {
   local check_mutating="${1:-false}"
 
   echo "Waiting for Kyverno webhook to be ready..."
-  sleep 10
   local timeout=60
   local elapsed=0
 
