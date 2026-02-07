@@ -20,7 +20,7 @@
 export SHOWROOM_PULL_SECRET="${SHOWROOM_PULL_SECRET:-}"
 
 # RHOAI catalog image
-export SHOWROOM_CATALOG_IMAGE="${SHOWROOM_CATALOG_IMAGE:-quay.io/rhoai/odh-llama-stack-core-rhel9:rhoai-3.3}"
+export SHOWROOM_CATALOG_IMAGE="${SHOWROOM_CATALOG_IMAGE:-quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.3}"
 
 # Llama Stack custom image (optional - set to override default)
 export SHOWROOM_LLAMA_STACK_IMAGE="${SHOWROOM_LLAMA_STACK_IMAGE:-}"
