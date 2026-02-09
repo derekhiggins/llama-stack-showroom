@@ -12,12 +12,19 @@ This script demonstrates how to:
 Usage:
     python scripts/rag-demo.py <LLAMASTACK_URL> [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
 
-Example:
+Example with config file:
+    source ~/.lls_showroom
+    python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com \
+        https://keycloak-redhat-ods-applications.apps.example.com \
+        developer dev123
+
+Example with explicit secret:
     python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com \
         https://keycloak-redhat-ods-applications.apps.example.com \
         developer dev123 <client-secret>
 
 If Keycloak parameters are not provided, the script will attempt to run without authentication.
+The client secret can be set in ~/.lls_showroom as KEYCLOAK_CLIENT_SECRET.
 
 Note: This is a simplified demo. For production RAG, consider using vector databases
 with the LlamaStack vector-io API or vector_stores endpoints.
@@ -198,11 +205,16 @@ def main():
         print("Usage: python scripts/rag-demo.py <LLAMASTACK_URL> [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]")
         print("\nExample without authentication:")
         print("  python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com")
-        print("\nExample with Keycloak authentication:")
+        print("\nExample with Keycloak authentication using config file:")
+        print("  source ~/.lls_showroom")
+        print("  python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com \\")
+        print("      https://keycloak-redhat-ods-applications.apps.example.com \\")
+        print("      developer dev123")
+        print("\nExample with explicit client secret:")
         print("  python scripts/rag-demo.py https://llamastack-distribution-redhat-ods-applications.apps.example.com \\")
         print("      https://keycloak-redhat-ods-applications.apps.example.com \\")
         print("      developer dev123 <client-secret>")
-        print("\nNote: You can also set KEYCLOAK_CLIENT_SECRET environment variable instead of passing it as argument")
+        print("\nNote: Set KEYCLOAK_CLIENT_SECRET in ~/.lls_showroom or pass as argument")
         sys.exit(1)
 
     llamastack_url = sys.argv[1]

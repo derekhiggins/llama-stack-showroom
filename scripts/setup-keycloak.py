@@ -11,6 +11,7 @@ Usage:
 Environment Variables:
     KEYCLOAK_URL: Keycloak base URL (default: https://kc-keycloak.com)
     KEYCLOAK_ADMIN_PASSWORD: Admin password (default: dummy)
+    KEYCLOAK_CLIENT_SECRET: Optional client secret to set (if not provided, uses generated one)
 """
 
 import os
@@ -24,9 +25,10 @@ from typing import Dict, Any, Optional
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class KeycloakSetup:
-    def __init__(self, base_url: str, admin_password: str):
+    def __init__(self, base_url: str, admin_password: str, client_secret: Optional[str] = None):
         self.base_url = base_url.rstrip('/')
         self.admin_password = admin_password
+        self.client_secret = client_secret
         self.admin_token = None
         self.realm_name = "llamastack-demo"
         self.client_id = "llamastack"
@@ -151,6 +153,40 @@ class KeycloakSetup:
         if response.status_code == 200:
             return response.json()['value']
         return None
+
+    def set_client_secret(self, secret: str) -> bool:
+        """Set a custom client secret"""
+        client_uuid = self.get_client_uuid()
+        if not client_uuid:
+            return False
+
+        headers = {
+            'Authorization': f'Bearer {self.admin_token}',
+            'Content-Type': 'application/json'
+        }
+
+        # First, get the current client representation
+        url = f"{self.base_url}/admin/realms/{self.realm_name}/clients/{client_uuid}"
+        response = requests.get(url, headers=headers, verify=False)
+
+        if response.status_code != 200:
+            print(f"✗ Failed to get client: {response.text}")
+            return False
+
+        client_repr = response.json()
+
+        # Update the secret in the client representation
+        client_repr['secret'] = secret
+
+        # PUT the updated client back
+        response = requests.put(url, headers=headers, json=client_repr, verify=False)
+
+        if response.status_code == 204:
+            print(f"✓ Set custom client secret")
+            return True
+        else:
+            print(f"✗ Failed to set client secret: {response.status_code} - {response.text}")
+            return False
 
     def create_roles(self) -> bool:
         """Create the required roles"""
@@ -480,6 +516,11 @@ class KeycloakSetup:
             if not self.create_users():
                 return False
 
+            # Set custom client secret if provided
+            if self.client_secret:
+                if not self.set_client_secret(self.client_secret):
+                    print("Warning: Failed to set custom client secret, using generated one")
+
             # Display client secret
             client_secret = self.get_client_secret()
             if client_secret:
@@ -490,6 +531,11 @@ class KeycloakSetup:
                 print(f"   JWKS URI: {self.base_url}/realms/{self.realm_name}/protocol/openid-connect/certs")
                 print(f"   Issuer: {self.base_url}/realms/{self.realm_name}")
                 print(f"   Token Endpoint: {self.base_url}/realms/{self.realm_name}/protocol/openid-connect/token")
+
+                if not self.client_secret:
+                    print(f"\n💡 To save this client secret for use with rag-demo.py:")
+                    print(f"   Add the following line to ~/.lls_showroom:")
+                    print(f"   export KEYCLOAK_CLIENT_SECRET=\"{client_secret}\"")
 
                 print(f"\n👥 Demo Users:")
                 print(f"   admin / admin123 (role: admin, team: platform-team)")
@@ -510,10 +556,13 @@ class KeycloakSetup:
 def main():
     keycloak_url = os.getenv('KEYCLOAK_URL', 'https://kc-keycloak.com')
     admin_password = os.getenv('KEYCLOAK_ADMIN_PASSWORD', 'dummy')
+    client_secret = os.getenv('KEYCLOAK_CLIENT_SECRET')
 
     print(f"Keycloak URL: {keycloak_url}")
+    if client_secret:
+        print("Using custom client secret from KEYCLOAK_CLIENT_SECRET")
 
-    setup = KeycloakSetup(keycloak_url, admin_password)
+    setup = KeycloakSetup(keycloak_url, admin_password, client_secret)
     success = setup.setup_all()
 
     sys.exit(0 if success else 1)

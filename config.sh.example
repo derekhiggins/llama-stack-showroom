@@ -1,19 +1,22 @@
 # Configuration file template for llama-stack-showroom
 #
-# This file is sourced by setup.sh from ~/.lls_showroom
-# All values can be overridden by setting the environment variable before running setup.sh
+# This file is sourced by setup.sh and scripts from ~/.lls_showroom
+# All values can be overridden by setting the environment variable before running scripts
 #
 # SETUP INSTRUCTIONS:
 # 1. Copy this file to your home directory:
 #    cp config.sh.example ~/.lls_showroom
 #
-# 2. Edit ~/.lls_showroom and replace YOUR_USERNAME and YOUR_PASSWORD with your quay.io credentials
+# 2. Edit ~/.lls_showroom and set required values:
+#    o SHOWROOM_PULL_SECRET: base64-encoded quay.io credentials for setup.sh
+#    o KEYCLOAK_CLIENT_SECRET: client secret from Keycloak for scripts/rag-demo.py
 #
-# 3. Set SHOWROOM_PULL_SECRET in ~/.lls_showroom to the base64 output
+# 3. Source the config before running scripts that need it:
+#    source ~/.lls_showroom
+#    python scripts/rag-demo.py <ARGS>
 #
-# 4. Run ./setup.sh
-#
-# REQUIRED: SHOWROOM_PULL_SECRET
+# REQUIRED: SHOWROOM_PULL_SECRET (for setup.sh)
+# OPTIONAL: KEYCLOAK_CLIENT_SECRET (for rag-demo.py authentication)
 #
 
 # IMAGE pull secret
@@ -43,3 +46,6 @@ export SHOWROOM_VLLM_EMBEDDING_API_TOKEN="${SHOWROOM_VLLM_EMBEDDING_API_TOKEN:-}
 export SHOWROOM_EMBEDDING_MODEL="${SHOWROOM_EMBEDDING_MODEL:-nomic-embed-text-v1.5}"
 export SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID="${SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID:-nomic-ai/nomic-embed-text-v1.5}"
 export SHOWROOM_EMBEDDING_DIMENSION="${SHOWROOM_EMBEDDING_DIMENSION:-768}"
+
+# Keycloak configuration
+export KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET:-}"
