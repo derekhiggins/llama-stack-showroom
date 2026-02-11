@@ -55,6 +55,15 @@ spec:
         value: http://keycloak:8080
       - name: KEYCLOAK_VERIFY_TLS
         value: "false"
+      # Milvus Vector Database Configuration
+      - name: MILVUS_ENDPOINT
+        value: http://milvus:19530
+      - name: MILVUS_TOKEN
+        value: ""
+      - name: MILVUS_SECURE
+        value: "false"
+      - name: MILVUS_CONSISTENCY_LEVEL
+        value: "Strong"
       name: llama-stack
       port: 8321
       resources:
