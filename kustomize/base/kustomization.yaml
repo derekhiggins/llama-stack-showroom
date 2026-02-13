@@ -7,6 +7,9 @@ resources:
 - dscinitialization.yaml
 - datasciencecluster.yaml
 - postgres.yaml
+- etcd.yaml
+- etcd-networkpolicy.yaml
+- milvus.yaml
 - llamastackdistribution.yaml
 - networkpolicy.yaml
 - route.yaml

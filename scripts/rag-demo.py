@@ -33,9 +33,8 @@ with the LlamaStack vector-io API or vector_stores endpoints.
 import sys
 import requests
 import json
-import numpy as np
 import os
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Optional
 
 
 class LlamaStackDemo:
@@ -142,23 +141,101 @@ class LlamaStackDemo:
             print(f"✗ Error generating embeddings: {e}")
             return []
 
-    def cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
-        """Calculate cosine similarity between two vectors"""
-        v1 = np.array(vec1)
-        v2 = np.array(vec2)
-        return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+    def create_vector_store(self, name: str, embedding_dimension: int = 768, provider_id: str = "milvus-remote") -> Optional[str]:
+        """Create a vector store using vector_io API. Returns the vector store ID."""
+        try:
+            payload = {
+                "vector_store_id": name,
+                "embedding_model": "vllm-embedding/nomic-ai/nomic-embed-text-v1.5",
+                "embedding_dimension": embedding_dimension,
+                "provider_id": provider_id
+            }
+            response = self.session.post(
+                f"{self.base_url}/v1/vector_stores",
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
 
-    def semantic_search(self, query_embedding: List[float], doc_embeddings: List[List[float]],
-                       documents: List[Dict[str, str]], top_k: int = 3) -> List[Tuple[Dict[str, str], float]]:
-        """Find most similar documents using cosine similarity"""
-        similarities = []
-        for i, doc_emb in enumerate(doc_embeddings):
-            sim = self.cosine_similarity(query_embedding, doc_emb)
-            similarities.append((documents[i], sim))
+            if response.status_code in [200, 201]:
+                result = response.json()
+                vector_store_id = result.get('id')
+                print(f"✓ Created vector store: {vector_store_id}")
+                return vector_store_id
+            else:
+                print(f"✗ Failed to create vector store: {response.status_code}")
+                print(f"  Response: {response.text}")
+                return None
+        except Exception as e:
+            print(f"✗ Error creating vector store: {e}")
+            return None
 
-        # Sort by similarity (highest first)
-        similarities.sort(key=lambda x: x[1], reverse=True)
-        return similarities[:top_k]
+    def insert_vectors(self, vector_store_id: str, documents: List[Dict[str, Any]], embeddings: List[List[float]]) -> bool:
+        """Insert document embeddings into vector store"""
+        try:
+            # Prepare chunks with embeddings and metadata
+            chunks = []
+            for i, (doc, embedding) in enumerate(zip(documents, embeddings)):
+                chunks.append({
+                    "chunk_id": f"{doc['metadata']['source']}_{i}",
+                    "content": doc['content'],
+                    "embedding": embedding,
+                    "embedding_model": "vllm-embedding/nomic-ai/nomic-embed-text-v1.5",
+                    "embedding_dimension": len(embedding),
+                    "chunk_metadata": {
+                        "source": doc['metadata']['source'],
+                        "topic": doc['metadata']['topic']
+                    }
+                })
+
+            payload = {
+                "vector_store_id": vector_store_id,
+                "chunks": chunks
+            }
+
+            response = self.session.post(
+                f"{self.base_url}/v1/vector-io/insert",
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+
+            if response.status_code in [200, 201]:
+                print(f"✓ Inserted {len(chunks)} vectors into {vector_store_id}")
+                return True
+            else:
+                print(f"✗ Failed to insert vectors: {response.status_code}")
+                print(f"  Response: {response.text}")
+                return False
+        except Exception as e:
+            print(f"✗ Error inserting vectors: {e}")
+            return False
+
+    def query_vectors(self, vector_store_id: str, query_text: str, top_k: int = 3) -> List[Dict[str, Any]]:
+        """Query vector store for similar documents"""
+        try:
+            payload = {
+                "vector_store_id": vector_store_id,
+                "query": query_text,
+                "params": {"k": top_k}
+            }
+
+            response = self.session.post(
+                f"{self.base_url}/v1/vector-io/query",
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                # Extract chunks from response
+                chunks = result.get('chunks', [])
+                return chunks
+            else:
+                print(f"✗ Failed to query vectors: {response.status_code}")
+                print(f"  Response: {response.text}")
+                return []
+        except Exception as e:
+            print(f"✗ Error querying vectors: {e}")
+            return []
 
     def chat_completion(self, query: str, context: str = "", model: str = "vllm-inference/llama-3-2-3b") -> str:
         """Generate a completion using the chat endpoint"""
@@ -282,6 +359,20 @@ def main():
         print("\n✗ Failed to generate embeddings. Exiting.")
         sys.exit(1)
 
+    # Create vector store and insert document embeddings
+    print("\n" + "=" * 60)
+    print("Setting up Vector Store")
+    print("=" * 60)
+
+    vector_store_id = demo.create_vector_store("rag-demo-kb", embedding_dimension=768)
+    if not vector_store_id:
+        print("\n✗ Failed to create vector store. Exiting.")
+        sys.exit(1)
+
+    if not demo.insert_vectors(vector_store_id, documents, doc_embeddings):
+        print("\n✗ Failed to insert vectors. Exiting.")
+        sys.exit(1)
+
     # Query examples
     queries = [
         "What is Red Hat OpenShift AI?",
@@ -299,22 +390,22 @@ def main():
         print(f"Query {i}: {query}")
         print(f"{'-' * 60}")
 
-        # Generate query embedding
-        query_embeddings = demo.generate_embeddings([query])
-        if not query_embeddings:
-            print("\n✗ Failed to generate query embedding")
+        # Query vector store for similar documents (API generates embedding internally)
+        results = demo.query_vectors(vector_store_id, query, top_k=3)
+
+        if not results:
+            print("\n✗ No results found")
             continue
 
-        # Find most similar documents
-        results = demo.semantic_search(query_embeddings[0], doc_embeddings, documents, top_k=3)
-
         print(f"\nMost relevant documents:")
-        for j, (doc, score) in enumerate(results, 1):
-            source = doc.get('metadata', {}).get('source', 'unknown')
+        for j, chunk in enumerate(results, 1):
+            chunk_metadata = chunk.get('chunk_metadata', {})
+            source = chunk_metadata.get('source', 'unknown')
+            score = chunk.get('score', 0.0)
             print(f"  {j}. {source} (similarity: {score:.3f})")
 
         # Build context from top results
-        context = "\n\n".join([doc['content'] for doc, _ in results[:2]])
+        context = "\n\n".join([chunk.get('content', '') for chunk in results[:2]])
 
         # Generate answer using chat completions
         print(f"\nGenerating answer with chat completions...")
@@ -330,8 +421,10 @@ def main():
     print("\nThis demo showed:")
     print("  1. Model discovery (inference and embedding models)")
     print("  2. Generating embeddings for documents")
-    print("  3. Semantic search using cosine similarity")
-    print("  4. Context-aware question answering with chat completions")
+    print("  3. Creating a vector store using LlamaStack vector_io API")
+    print("  4. Inserting vectors into Milvus for persistent storage")
+    print("  5. Semantic search using Milvus vector similarity")
+    print("  6. Context-aware question answering with chat completions")
     print("\nTo run your own queries, modify the 'queries' list in the script.")
 
 
