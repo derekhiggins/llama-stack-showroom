@@ -50,17 +50,20 @@ cp config.sh.example ~/.lls_showroom
 ./provision.sh   # Deploy Llama Stack distribution
 ```
 
-## Run Demo
+## Run Demos
 
 After provisioning, URLs and credentials are automatically saved to `~/.lls_showroom_generated`:
 
 ```bash
-./scripts/rag-demo.py  # No arguments needed!
+./scripts/rag-demo.py       # RAG with S3 file storage and vector search
+./scripts/responses-demo.py # Multi-turn conversations with response tracking
+./scripts/responses-demo.py --prompt "What is RAG?" # Single-turn with custom question
 ```
 
 Or with explicit parameters:
 ```bash
 ./scripts/rag-demo.py <LLAMASTACK_URL> <KEYCLOAK_URL> <USERNAME> <PASSWORD>
+./scripts/responses-demo.py <LLAMASTACK_URL> <KEYCLOAK_URL> <USERNAME> <PASSWORD>
 ```
 
 ## Deploy Local Changes
