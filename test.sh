@@ -15,7 +15,20 @@ echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+echo "=========================================="
+echo "Running rag-demo.py..."
+echo "=========================================="
+echo ""
+
 uv run "${SCRIPT_DIR}/scripts/rag-demo.py"
+
+echo ""
+echo "=========================================="
+echo "Running responses-demo.py..."
+echo "=========================================="
+echo ""
+
+uv run "${SCRIPT_DIR}/scripts/responses-demo.py"
 
 echo ""
 echo "✓ Tests completed successfully"

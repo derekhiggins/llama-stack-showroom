@@ -4,9 +4,9 @@ LlamaStack Responses API Demo
 
 This script demonstrates how to:
 1. Authenticate with Keycloak to get a JWT token
-2. Use the OpenAI SDK to verify LlamaStack API conformance
+2. Use the OpenAI SDK Responses API (not Chat Completions) to verify LlamaStack API conformance
 3. Create multi-turn conversations with system instructions
-4. Track response IDs and verify response structure
+4. Track response IDs stored in LlamaStack's database
 
 Usage:
     python scripts/responses-demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET] [--prompt PROMPT]
@@ -138,7 +138,7 @@ class ResponsesDemo:
                        max_tokens: int = 512,
                        temperature: float = 0.7) -> Optional[Dict[str, Any]]:
         """
-        Create a response using the OpenAI SDK to verify API conformance.
+        Create a response using the OpenAI SDK Responses API to verify API conformance.
 
         Args:
             user_message: The user's input message
@@ -155,43 +155,39 @@ class ResponsesDemo:
                 print(f"✗ OpenAI client not initialized")
                 return None
 
-            # Build messages array
-            messages = []
-
-            # Add system instructions if provided
-            if instructions:
-                messages.append({
-                    "role": "system",
-                    "content": instructions
-                })
-
-            # Add user message
-            messages.append({
-                "role": "user",
-                "content": user_message
-            })
-
-            # Call OpenAI SDK - this verifies LlamaStack API conformance
-            completion = self.client.chat.completions.create(
+            # Call OpenAI Responses API - this verifies LlamaStack API conformance
+            response = self.client.responses.create(
                 model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature
+                input=user_message,
+                instructions=instructions,
+                max_output_tokens=max_tokens,
+                temperature=temperature,
+                store=True  # Store response in LlamaStack database
             )
 
-            # Extract response content and metadata
+            # Extract response content and metadata from Responses API
+            # Response has 'output' field (list of items), not 'choices'
+            content = ""
+            for item in response.output:
+                # Look for message items with text content
+                if hasattr(item, 'type') and item.type == 'message':
+                    if hasattr(item, 'content'):
+                        for content_item in item.content:
+                            if hasattr(content_item, 'text'):
+                                content += content_item.text
+
             response_data = {
-                'id': completion.id,
-                'content': completion.choices[0].message.content,
-                'finish_reason': completion.choices[0].finish_reason,
+                'id': response.id,
+                'content': content,
+                'status': response.status if hasattr(response, 'status') else None,
                 'user_message': user_message,
                 'instructions': instructions,
-                'model': completion.model,
+                'model': response.model,
                 'usage': {
-                    'prompt_tokens': completion.usage.prompt_tokens,
-                    'completion_tokens': completion.usage.completion_tokens,
-                    'total_tokens': completion.usage.total_tokens
-                },
+                    'input_tokens': response.usage.input_tokens if hasattr(response.usage, 'input_tokens') else 0,
+                    'output_tokens': response.usage.output_tokens if hasattr(response.usage, 'output_tokens') else 0,
+                    'total_tokens': response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0
+                } if response.usage else {},
                 'turn': len(self.response_history) + 1
             }
 
@@ -210,7 +206,7 @@ class ResponsesDemo:
                             max_tokens: int = 512,
                             temperature: float = 0.7) -> Optional[Dict[str, Any]]:
         """
-        Continue an existing conversation by including previous turns.
+        Continue an existing conversation using previous_response_id.
 
         Args:
             user_message: The user's new input message
@@ -226,53 +222,44 @@ class ResponsesDemo:
                 print(f"✗ OpenAI client not initialized")
                 return None
 
-            # Build messages array from history
-            messages = []
+            # Get the last response ID to continue from
+            previous_id = self.response_history[-1]['id'] if self.response_history else None
 
-            # Add first turn's instructions if they exist
-            if self.response_history and self.response_history[0].get('instructions'):
-                messages.append({
-                    "role": "system",
-                    "content": self.response_history[0]['instructions']
-                })
+            # Get instructions from first turn
+            instructions = self.response_history[0].get('instructions') if self.response_history else None
 
-            # Add all previous conversation turns
-            for turn in self.response_history:
-                messages.append({
-                    "role": "user",
-                    "content": turn['user_message']
-                })
-                messages.append({
-                    "role": "assistant",
-                    "content": turn['content']
-                })
-
-            # Add new user message
-            messages.append({
-                "role": "user",
-                "content": user_message
-            })
-
-            # Call OpenAI SDK
-            completion = self.client.chat.completions.create(
+            # Call OpenAI Responses API with previous_response_id to continue conversation
+            response = self.client.responses.create(
                 model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature
+                input=user_message,
+                instructions=instructions,
+                previous_response_id=previous_id,  # Links to previous response
+                max_output_tokens=max_tokens,
+                temperature=temperature,
+                store=True  # Store response in LlamaStack database
             )
 
-            # Extract response content and metadata
+            # Extract response content and metadata from Responses API
+            content = ""
+            for item in response.output:
+                # Look for message items with text content
+                if hasattr(item, 'type') and item.type == 'message':
+                    if hasattr(item, 'content'):
+                        for content_item in item.content:
+                            if hasattr(content_item, 'text'):
+                                content += content_item.text
+
             response_data = {
-                'id': completion.id,
-                'content': completion.choices[0].message.content,
-                'finish_reason': completion.choices[0].finish_reason,
+                'id': response.id,
+                'content': content,
+                'status': response.status if hasattr(response, 'status') else None,
                 'user_message': user_message,
-                'model': completion.model,
+                'model': response.model,
                 'usage': {
-                    'prompt_tokens': completion.usage.prompt_tokens,
-                    'completion_tokens': completion.usage.completion_tokens,
-                    'total_tokens': completion.usage.total_tokens
-                },
+                    'input_tokens': response.usage.input_tokens if hasattr(response.usage, 'input_tokens') else 0,
+                    'output_tokens': response.usage.output_tokens if hasattr(response.usage, 'output_tokens') else 0,
+                    'total_tokens': response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0
+                } if response.usage else {},
                 'turn': len(self.response_history) + 1
             }
 
@@ -295,7 +282,7 @@ class ResponsesDemo:
         print(f"{'=' * 60}")
         print(f"Response ID: {response_data['id']}")
         print(f"Model: {response_data['model']}")
-        print(f"Finish Reason: {response_data.get('finish_reason', 'N/A')}")
+        print(f"Status: {response_data.get('status', 'N/A')}")
 
         if response_data.get('instructions'):
             print(f"\nInstructions:")
@@ -310,8 +297,8 @@ class ResponsesDemo:
         usage = response_data.get('usage', {})
         if usage:
             print(f"\nUsage:")
-            print(f"  Prompt tokens: {usage.get('prompt_tokens', 'N/A')}")
-            print(f"  Completion tokens: {usage.get('completion_tokens', 'N/A')}")
+            print(f"  Input tokens: {usage.get('input_tokens', 'N/A')}")
+            print(f"  Output tokens: {usage.get('output_tokens', 'N/A')}")
             print(f"  Total tokens: {usage.get('total_tokens', 'N/A')}")
 
     def print_history_summary(self):
@@ -413,7 +400,7 @@ When answering questions, be concise but informative. Use examples when appropri
         print("\n" + "=" * 60)
         print("Single-Turn Response Demo")
         print("=" * 60)
-        print("\nTesting custom prompt with OpenAI SDK...")
+        print("\nTesting custom prompt with OpenAI SDK Responses API...")
 
         response1 = demo.create_response(
             user_message=args.prompt,
@@ -431,7 +418,7 @@ When answering questions, be concise but informative. Use examples when appropri
         print("✅ Demo Complete!")
         print("=" * 60)
         print("\nSingle-turn response completed successfully.")
-        print("OpenAI SDK compatibility verified with custom prompt.")
+        print("OpenAI SDK Responses API compatibility verified with custom prompt.")
         print("\nTo see multi-turn conversation demo, run without --prompt option.")
 
     else:
@@ -440,7 +427,7 @@ When answering questions, be concise but informative. Use examples when appropri
         print("Multi-Turn Conversation Demo")
         print("=" * 60)
         print("\nThis demo will show:")
-        print("  1. Using OpenAI SDK to verify LlamaStack API conformance")
+        print("  1. Using OpenAI SDK Responses API to verify LlamaStack API conformance")
         print("  2. Creating responses with system instructions")
         print("  3. Tracking response IDs for each turn")
         print("  4. Continuing conversations with context")
@@ -499,13 +486,13 @@ When answering questions, be concise but informative. Use examples when appropri
         print("✅ Demo Complete!")
         print("=" * 60)
         print("\nThis demo showed:")
-        print("  ✓ OpenAI SDK compatibility - verified LlamaStack API conformance")
+        print("  ✓ OpenAI SDK Responses API compatibility - verified LlamaStack API conformance")
         print("  ✓ Creating responses with system instructions")
         print("  ✓ Tracking response IDs for each conversation turn")
         print("  ✓ Maintaining conversation context across multiple turns")
         print("\nKey takeaways:")
-        print("  - LlamaStack implements OpenAI-compatible chat completions API")
-        print("  - Successfully using OpenAI SDK verifies API conformance")
+        print("  - LlamaStack implements OpenAI-compatible Responses API")
+        print("  - Successfully using OpenAI SDK Responses API verifies API conformance")
         print("  - Response IDs are unique and trackable across turns")
         print("  - Instructions persist throughout the conversation")
         print("  - Context is maintained by including previous messages")
