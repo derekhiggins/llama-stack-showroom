@@ -106,6 +106,23 @@ if [ "${OVERLAY}" = "reference" ]; then
   echo "Config.yaml built successfully"
 fi
 
+# Wait for operator deployment to be fully ready before applying CRs
+# This ensures all operator replicas are running and webhooks are registered
+echo ""
+wait_for "RHOAI operator deployment to be ready" \
+  "[ \"\$(oc get deployment rhods-operator -n redhat-ods-operator -o jsonpath='{.status.readyReplicas}' 2>/dev/null)\" = \"\$(oc get deployment rhods-operator -n redhat-ods-operator -o jsonpath='{.spec.replicas}' 2>/dev/null)\" ] && \
+   [ \"\$(oc get deployment rhods-operator -n redhat-ods-operator -o jsonpath='{.status.readyReplicas}' 2>/dev/null)\" != \"\" ]" \
+  120 5 || {
+    echo "WARNING: Operator deployment not fully ready within timeout."
+    echo "Operator status:"
+    oc get deployment rhods-operator -n redhat-ods-operator
+    oc get pods -n redhat-ods-operator
+  }
+
+# Additional brief delay to allow webhook registration to complete
+sleep 5
+echo ""
+
 # Build with kustomize and apply
 # Note: We still use envsubst to substitute secrets from environment
 oc kustomize "${OVERLAY_PATH}" | envsubst | oc apply -f -
