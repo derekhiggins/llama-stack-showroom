@@ -156,12 +156,12 @@ class ResponsesDemo:
                 return None
 
             # Call OpenAI Responses API - this verifies LlamaStack API conformance
+            # Note: Use minimal parameters - LlamaStack may not support all OpenAI parameters
+            # store=True ensures responses are persisted in database for later retrieval
             response = self.client.responses.create(
                 model=model,
                 input=user_message,
                 instructions=instructions,
-                max_output_tokens=max_tokens,
-                temperature=temperature,
                 store=True  # Store response in LlamaStack database
             )
 
@@ -229,13 +229,13 @@ class ResponsesDemo:
             instructions = self.response_history[0].get('instructions') if self.response_history else None
 
             # Call OpenAI Responses API with previous_response_id to continue conversation
+            # Note: Use minimal parameters - LlamaStack may not support all OpenAI parameters
+            # store=True ensures responses are persisted in database for later retrieval
             response = self.client.responses.create(
                 model=model,
                 input=user_message,
                 instructions=instructions,
                 previous_response_id=previous_id,  # Links to previous response
-                max_output_tokens=max_tokens,
-                temperature=temperature,
                 store=True  # Store response in LlamaStack database
             )
 
