@@ -46,14 +46,7 @@ from openai import OpenAI
 SCRIPT_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-try:
-    from secrets_util import get_or_set, get
-except ImportError:
-    # Fallback if secrets_util is not available
-    def get_or_set(key: str, default: Optional[str] = None, **kwargs) -> Optional[str]:
-        return default or os.environ.get(key)
-    def get(key: str, default: Optional[str] = None, **kwargs) -> Optional[str]:
-        return default or os.environ.get(key)
+from secrets_util import get_or_set, get
 
 
 class ResponsesDemo:
@@ -134,18 +127,15 @@ class ResponsesDemo:
     def create_response(self,
                        user_message: str,
                        instructions: Optional[str] = None,
-                       model: str = "vllm-inference/llama-3-2-3b",
-                       max_tokens: int = 512,
-                       temperature: float = 0.7) -> Optional[Dict[str, Any]]:
+                       model: str = "vllm-inference/llama-3-2-3b") -> Optional[Dict[str, Any]]:
         """
-        Create a response using the OpenAI SDK Responses API to verify API conformance.
+        Create a response using the OpenAI SDK Responses API.
+        Auto-detects continuation based on response_history.
 
         Args:
             user_message: The user's input message
-            instructions: Optional system instructions to guide the model
+            instructions: Optional system instructions (only used for first turn)
             model: Model to use for inference
-            max_tokens: Maximum tokens to generate
-            temperature: Sampling temperature
 
         Returns:
             Response dict containing id, content, and metadata
@@ -155,15 +145,27 @@ class ResponsesDemo:
                 print(f"✗ OpenAI client not initialized")
                 return None
 
+            # Auto-detect if this is a continuation
+            is_continuation = len(self.response_history) > 0
+
+            # Build API call parameters
+            params = {
+                "model": model,
+                "input": user_message,
+                "store": True  # Store response in LlamaStack database
+            }
+
+            if is_continuation:
+                # Continue existing conversation
+                params["previous_response_id"] = self.response_history[-1]['id']
+                # Use instructions from first turn
+                params["instructions"] = self.response_history[0].get('instructions')
+            else:
+                # Start new conversation
+                params["instructions"] = instructions
+
             # Call OpenAI Responses API - this verifies LlamaStack API conformance
-            # Note: Use minimal parameters - LlamaStack may not support all OpenAI parameters
-            # store=True ensures responses are persisted in database for later retrieval
-            response = self.client.responses.create(
-                model=model,
-                input=user_message,
-                instructions=instructions,
-                store=True  # Store response in LlamaStack database
-            )
+            response = self.client.responses.create(**params)
 
             # Extract response content and metadata from Responses API
             # Response has 'output' field (list of items), not 'choices'
@@ -181,7 +183,7 @@ class ResponsesDemo:
                 'content': content,
                 'status': response.status if hasattr(response, 'status') else None,
                 'user_message': user_message,
-                'instructions': instructions,
+                'instructions': instructions if not is_continuation else None,
                 'model': response.model,
                 'usage': {
                     'input_tokens': response.usage.input_tokens if hasattr(response.usage, 'input_tokens') else 0,
@@ -198,78 +200,6 @@ class ResponsesDemo:
 
         except Exception as e:
             print(f"✗ Error creating response: {e}")
-            return None
-
-    def continue_conversation(self,
-                            user_message: str,
-                            model: str = "vllm-inference/llama-3-2-3b",
-                            max_tokens: int = 512,
-                            temperature: float = 0.7) -> Optional[Dict[str, Any]]:
-        """
-        Continue an existing conversation using previous_response_id.
-
-        Args:
-            user_message: The user's new input message
-            model: Model to use for inference
-            max_tokens: Maximum tokens to generate
-            temperature: Sampling temperature
-
-        Returns:
-            Response dict containing id, content, and metadata
-        """
-        try:
-            if not self.client:
-                print(f"✗ OpenAI client not initialized")
-                return None
-
-            # Get the last response ID to continue from
-            previous_id = self.response_history[-1]['id'] if self.response_history else None
-
-            # Get instructions from first turn
-            instructions = self.response_history[0].get('instructions') if self.response_history else None
-
-            # Call OpenAI Responses API with previous_response_id to continue conversation
-            # Note: Use minimal parameters - LlamaStack may not support all OpenAI parameters
-            # store=True ensures responses are persisted in database for later retrieval
-            response = self.client.responses.create(
-                model=model,
-                input=user_message,
-                instructions=instructions,
-                previous_response_id=previous_id,  # Links to previous response
-                store=True  # Store response in LlamaStack database
-            )
-
-            # Extract response content and metadata from Responses API
-            content = ""
-            for item in response.output:
-                # Look for message items with text content
-                if hasattr(item, 'type') and item.type == 'message':
-                    if hasattr(item, 'content'):
-                        for content_item in item.content:
-                            if hasattr(content_item, 'text'):
-                                content += content_item.text
-
-            response_data = {
-                'id': response.id,
-                'content': content,
-                'status': response.status if hasattr(response, 'status') else None,
-                'user_message': user_message,
-                'model': response.model,
-                'usage': {
-                    'input_tokens': response.usage.input_tokens if hasattr(response.usage, 'input_tokens') else 0,
-                    'output_tokens': response.usage.output_tokens if hasattr(response.usage, 'output_tokens') else 0,
-                    'total_tokens': response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0
-                } if response.usage else {},
-                'turn': len(self.response_history) + 1
-            }
-
-            # Save to history
-            self.response_history.append(response_data)
-
-            return response_data
-
-        except Exception as e:
-            print(f"✗ Error continuing conversation: {e}")
             return None
 
     def print_response(self, response_data: Dict[str, Any]):
@@ -390,7 +320,7 @@ Examples:
 
     # Define instructions for the conversation
     instructions = """You are a helpful AI assistant that specializes in explaining technology concepts.
-When answering questions, be concise but informative. Use examples when appropriate."""
+When answering questions, be concise but informative. Keep all answers brief."""
 
     # Check if user provided a custom prompt
     is_custom_prompt = args.prompt != "What is a vector database?"
@@ -404,8 +334,7 @@ When answering questions, be concise but informative. Use examples when appropri
 
         response1 = demo.create_response(
             user_message=args.prompt,
-            instructions=instructions,
-            max_tokens=300
+            instructions=instructions
         )
 
         if response1:
@@ -439,8 +368,7 @@ When answering questions, be concise but informative. Use examples when appropri
 
         response1 = demo.create_response(
             user_message=args.prompt,
-            instructions=instructions,
-            max_tokens=300
+            instructions=instructions
         )
 
         if response1:
@@ -454,9 +382,8 @@ When answering questions, be concise but informative. Use examples when appropri
         print("Creating Turn 2 (continuing conversation)...")
         print("-" * 60)
 
-        response2 = demo.continue_conversation(
-            user_message="Can you give me a practical example of when I would use one?",
-            max_tokens=300
+        response2 = demo.create_response(
+            user_message="Can you give me a practical example of when I would use one?"
         )
 
         if response2:
@@ -469,9 +396,8 @@ When answering questions, be concise but informative. Use examples when appropri
         print("Creating Turn 3 (another follow-up)...")
         print("-" * 60)
 
-        response3 = demo.continue_conversation(
-            user_message="Based on that example, which vector database would you recommend?",
-            max_tokens=300
+        response3 = demo.create_response(
+            user_message="Based on that example, which vector database would you recommend?"
         )
 
         if response3:
