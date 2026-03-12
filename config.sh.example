@@ -37,7 +37,7 @@ export SHOWROOM_OPERATOR_CHANNEL="${SHOWROOM_OPERATOR_CHANNEL:-beta}"
 
 
 # Llama Stack custom image (optional - set to override default)
-export SHOWROOM_LLAMA_STACK_IMAGE="${SHOWROOM_LLAMA_STACK_IMAGE:-}"
+export SHOWROOM_LLAMA_STACK_IMAGE=quay.io/rhoai/odh-llama-stack-core-rhel9:rhoai-3.4-ea.2
 
 # Operator custom image (optional - set to override default)
 export SHOWROOM_OPERATOR_IMAGE="${SHOWROOM_OPERATOR_IMAGE:-}"
