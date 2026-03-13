@@ -13,20 +13,20 @@ This script demonstrates how to:
 8. Generate answers using chat completions with RAG
 
 Usage:
-    python scripts/rag-demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
+    python demos/rag/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
 
 The script reads configuration from (in order): command line args, ~/.lls_showroom_generated,
 environment variables. All arguments are optional if stored in ~/.lls_showroom_generated.
 
 Example with no arguments (reads from ~/.lls_showroom_generated):
-    python scripts/rag-demo.py
+    python demos/rag/demo.py
 
 Example with URLs only:
-    python scripts/rag-demo.py https://llamastack-distribution.apps.example.com \
+    python demos/rag/demo.py https://llamastack-distribution.apps.example.com \
         https://keycloak.apps.example.com
 
 Example with full authentication:
-    python scripts/rag-demo.py https://llamastack-distribution.apps.example.com \
+    python demos/rag/demo.py https://llamastack-distribution.apps.example.com \
         https://keycloak.apps.example.com \
         developer dev123
 
@@ -44,12 +44,12 @@ import os
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-# Add scripts directory to path for imports
-SCRIPT_DIR = Path(__file__).parent
-sys.path.insert(0, str(SCRIPT_DIR))
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
-    from secrets_util import get_or_set, get
+    from scripts.secrets_util import get_or_set, get
 except ImportError:
     # Fallback if secrets_util is not available
     def get_or_set(key: str, default: Optional[str] = None, **kwargs) -> Optional[str]:
@@ -395,12 +395,12 @@ def main():
     # List available models
     models = demo.list_models()
 
-    # Load sample document from scripts directory
-    knowledge_base_file = SCRIPT_DIR / "knowledge_base.txt"
+    # Load sample document from fixtures
+    knowledge_base_file = PROJECT_ROOT / "demos" / "fixtures" / "knowledge_base.txt"
 
     if not knowledge_base_file.exists():
         print(f"\n✗ Sample document not found: {knowledge_base_file}")
-        print("  Please create knowledge_base.txt in scripts/")
+        print("  Please create knowledge_base.txt in demos/fixtures/")
         sys.exit(1)
 
     print(f"\nFound sample knowledge base document: {knowledge_base_file.name}")

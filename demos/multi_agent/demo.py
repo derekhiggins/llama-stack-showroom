@@ -8,7 +8,7 @@ Agents:
 - Repo Query Agent: Queries llamastack/llama-stack GitHub via DeepWiki MCP
 - General Agent: Handles comparisons and general questions
 
-Usage: python scripts/multi-agent-demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
+Usage: python demos/multi_agent/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
 Config read from: CLI args → environment variables
 """
 
@@ -19,11 +19,11 @@ from datetime import datetime
 from tabulate import tabulate
 from agents import Agent, Runner, RunConfig, MultiProvider, FunctionTool, HostedMCPTool
 
-from secrets_util import get_or_set, get
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-# Add scripts directory to path for imports
-SCRIPT_DIR = Path(__file__).parent
-sys.path.insert(0, str(SCRIPT_DIR))
+from scripts.secrets_util import get_or_set, get
 
 
 # Configuration

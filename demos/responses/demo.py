@@ -9,23 +9,23 @@ This script demonstrates how to:
 4. Track response IDs stored in LlamaStack's database
 
 Usage:
-    python scripts/responses-demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET] [--prompt PROMPT]
+    python demos/responses/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET] [--prompt PROMPT]
 
 The script reads configuration from (in order): command line args, ~/.lls_showroom_generated,
 environment variables. All arguments are optional if stored in ~/.lls_showroom_generated.
 
 Example with no arguments (reads from ~/.lls_showroom_generated):
-    python scripts/responses-demo.py
+    python demos/responses/demo.py
 
 Example with custom prompt:
-    python scripts/responses-demo.py --prompt "What is RAG?"
+    python demos/responses/demo.py --prompt "What is RAG?"
 
 Example with URLs only:
-    python scripts/responses-demo.py https://llamastack-distribution.apps.example.com \
+    python demos/responses/demo.py https://llamastack-distribution.apps.example.com \
         https://keycloak.apps.example.com
 
 Example with full authentication and custom prompt:
-    python scripts/responses-demo.py https://llamastack-distribution.apps.example.com \
+    python demos/responses/demo.py https://llamastack-distribution.apps.example.com \
         https://keycloak.apps.example.com \
         developer dev123 --prompt "Explain embeddings"
 
@@ -42,11 +42,11 @@ from typing import Optional, Dict, Any, List
 from pathlib import Path
 from openai import OpenAI
 
-# Add scripts directory to path for imports
-SCRIPT_DIR = Path(__file__).parent
-sys.path.insert(0, str(SCRIPT_DIR))
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from secrets_util import get_or_set, get
+from scripts.secrets_util import get_or_set, get
 
 
 class ResponsesDemo:
