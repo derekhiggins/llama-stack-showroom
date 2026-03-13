@@ -24,6 +24,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from scripts.secrets_util import get_or_set, get
+from demos.common.utils import get_keycloak_token
 
 
 # Configuration
@@ -114,15 +115,6 @@ SAMPLE_DOCUMENTS = [
 ]
 
 
-def get_jwt_token(keycloak_url: str, username: str, password: str, client_secret: str) -> str:
-    """Get JWT token from Keycloak"""
-    response = requests.post(
-        f"{keycloak_url}/realms/llamastack-demo/protocol/openid-connect/token",
-        data={'client_id': 'llamastack', 'client_secret': client_secret,
-              'username': username, 'password': password, 'grant_type': 'password'}
-    )
-    response.raise_for_status()
-    return response.json()['access_token']
 
 
 class KnowledgeBase:
@@ -284,7 +276,7 @@ async def main():
     if keycloak_url and username and password and client_secret:
         print(f"Authenticating with Keycloak as '{username}'...")
         try:
-            api_key = get_jwt_token(keycloak_url, username, password, client_secret)
+            api_key = get_keycloak_token(keycloak_url, username, password, client_secret, verbose=False)
             print("✓ Authentication successful!")
         except Exception as e:
             print(f"✗ Authentication failed: {e}")

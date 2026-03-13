@@ -57,6 +57,8 @@ except ImportError:
     def get(key: str, default: Optional[str] = None, **kwargs) -> Optional[str]:
         return default or os.environ.get(key)
 
+from demos.common.utils import get_keycloak_token
+
 
 class LlamaStackDemo:
     def __init__(self, base_url: str, keycloak_url: Optional[str] = None,
@@ -77,33 +79,14 @@ class LlamaStackDemo:
     def authenticate(self) -> bool:
         """Get JWT token from Keycloak"""
         try:
-            token_url = f"{self.keycloak_url}/realms/llamastack-demo/protocol/openid-connect/token"
-
-            payload = {
-                'client_id': 'llamastack',
-                'client_secret': self.client_secret,
-                'username': self.username,
-                'password': self.password,
-                'grant_type': 'password'
-            }
-
-            print(f"\n🔐 Authenticating with Keycloak as '{self.username}'...")
-            response = requests.post(token_url, data=payload, verify=True)
-            response.raise_for_status()
-
-            token_data = response.json()
-            access_token = token_data.get('access_token')
-
-            if access_token:
-                self.session.headers.update({'Authorization': f'Bearer {access_token}'})
-                print(f"✓ Authentication successful")
-                print(f"  Token type: {token_data.get('token_type', 'Bearer')}")
-                print(f"  Expires in: {token_data.get('expires_in', 'unknown')} seconds")
-                return True
-            else:
-                print(f"✗ No access token in response")
-                return False
-
+            access_token = get_keycloak_token(
+                self.keycloak_url,
+                self.username,
+                self.password,
+                self.client_secret
+            )
+            self.session.headers.update({'Authorization': f'Bearer {access_token}'})
+            return True
         except Exception as e:
             print(f"✗ Authentication failed: {e}")
             return False

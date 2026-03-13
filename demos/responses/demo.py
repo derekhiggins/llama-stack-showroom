@@ -47,6 +47,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from scripts.secrets_util import get_or_set, get
+from demos.common.utils import get_keycloak_token
 
 
 class ResponsesDemo:
@@ -83,32 +84,13 @@ class ResponsesDemo:
     def authenticate(self) -> Optional[str]:
         """Get JWT token from Keycloak and return it"""
         try:
-            token_url = f"{self.keycloak_url}/realms/llamastack-demo/protocol/openid-connect/token"
-
-            payload = {
-                'client_id': 'llamastack',
-                'client_secret': self.client_secret,
-                'username': self.username,
-                'password': self.password,
-                'grant_type': 'password'
-            }
-
-            print(f"\n🔐 Authenticating with Keycloak as '{self.username}'...")
-            response = requests.post(token_url, data=payload, verify=True)
-            response.raise_for_status()
-
-            token_data = response.json()
-            access_token = token_data.get('access_token')
-
-            if access_token:
-                print(f"✓ Authentication successful")
-                print(f"  Token type: {token_data.get('token_type', 'Bearer')}")
-                print(f"  Expires in: {token_data.get('expires_in', 'unknown')} seconds")
-                return access_token
-            else:
-                print(f"✗ No access token in response")
-                return None
-
+            access_token = get_keycloak_token(
+                self.keycloak_url,
+                self.username,
+                self.password,
+                self.client_secret
+            )
+            return access_token
         except Exception as e:
             print(f"✗ Authentication failed: {e}")
             return None
