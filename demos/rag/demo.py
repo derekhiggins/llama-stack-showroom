@@ -57,7 +57,7 @@ except ImportError:
     def get(key: str, default: Optional[str] = None, **kwargs) -> Optional[str]:
         return default or os.environ.get(key)
 
-from demos.common.utils import get_keycloak_token
+from demos.common.utils import get_keycloak_token, load_demo_config
 
 
 class LlamaStackDemo:
@@ -316,32 +316,14 @@ class LlamaStackDemo:
 
 
 def main():
-    # Read configuration from command line args, secrets file, or environment variables
-    # Priority: command line > secrets file > environment variables
+    # Load configuration from command line args, secrets file, or environment variables
+    config = load_demo_config()
 
-    llamastack_url = sys.argv[1] if len(sys.argv) > 1 else None
-    if not llamastack_url:
-        # Try secrets file, then env var
-        llamastack_url = get('LLAMASTACK_URL') or os.environ.get('LLAMASTACK_URL')
-
-    keycloak_url = sys.argv[2] if len(sys.argv) > 2 else None
-    if not keycloak_url:
-        # Try secrets file, then env var
-        keycloak_url = get('KEYCLOAK_URL') or os.environ.get('KEYCLOAK_URL')
-
-    username = sys.argv[3] if len(sys.argv) > 3 else None
-    if not username:
-        username = get('KEYCLOAK_USERNAME') or os.environ.get('KEYCLOAK_USERNAME')
-
-    password = sys.argv[4] if len(sys.argv) > 4 else None
-    if not password:
-        password = get('KEYCLOAK_PASSWORD') or os.environ.get('KEYCLOAK_PASSWORD')
-
-    # Get client secret from command line or persistent storage
-    # get_or_set checks: secrets file, env var, then generates if needed
-    client_secret = sys.argv[5] if len(sys.argv) > 5 else None
-    if not client_secret:
-        client_secret = get_or_set('KEYCLOAK_CLIENT_SECRET')
+    llamastack_url = config['llamastack_url']
+    keycloak_url = config['keycloak_url']
+    username = config['username']
+    password = config['password']
+    client_secret = config['client_secret']
 
     # Validate that we have at least the LlamaStack URL
     if not llamastack_url:

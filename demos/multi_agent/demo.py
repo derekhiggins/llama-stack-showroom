@@ -24,7 +24,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from scripts.secrets_util import get_or_set, get
-from demos.common.utils import get_keycloak_token
+from demos.common.utils import get_keycloak_token, load_demo_config
 
 
 # Configuration
@@ -249,11 +249,14 @@ async def main():
     """Main execution function"""
     had_failures = False
 
-    llamastack_url = sys.argv[1] if len(sys.argv) > 1 else get('LLAMASTACK_URL') or os.environ.get('LLAMASTACK_URL')
-    keycloak_url = sys.argv[2] if len(sys.argv) > 2 else get('KEYCLOAK_URL') or os.environ.get('KEYCLOAK_URL')
-    username = sys.argv[3] if len(sys.argv) > 3 else get('KEYCLOAK_USERNAME') or os.environ.get('KEYCLOAK_USERNAME')
-    password = sys.argv[4] if len(sys.argv) > 4 else get('KEYCLOAK_PASSWORD') or os.environ.get('KEYCLOAK_PASSWORD')
-    client_secret = sys.argv[5] if len(sys.argv) > 5 else get_or_set('KEYCLOAK_CLIENT_SECRET')
+    # Load configuration from command line args, secrets file, or environment variables
+    config = load_demo_config()
+
+    llamastack_url = config['llamastack_url']
+    keycloak_url = config['keycloak_url']
+    username = config['username']
+    password = config['password']
+    client_secret = config['client_secret']
 
     if not llamastack_url:
         print("Error: LLAMASTACK_URL is required")
