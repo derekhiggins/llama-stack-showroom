@@ -8,37 +8,80 @@ if ! command -v uv &> /dev/null; then
   exit 1
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Parse command line arguments for tag filtering
+FILTER_TAGS="${1:-all}"
+
+# Check if required environment key exists
+check_required_key() {
+  local key_name="$1"
+
+  if [ -z "$key_name" ]; then
+    return 0  # No requirement
+  fi
+
+  # Check in ~/.lls_showroom file
+  if [ -f ~/.lls_showroom ]; then
+    # shellcheck source=/dev/null
+    source ~/.lls_showroom
+  fi
+
+  # Check if the variable is set
+  if [ -n "${!key_name:-}" ]; then
+    return 0
+  fi
+
+  return 1
+}
+
+# Run a demo based on its type
+run_demo() {
+  local demo_path="$1"
+  local demo_type="$2"
+
+  case "$demo_type" in
+    python)
+      uv run "${SCRIPT_DIR}/${demo_path}"
+      ;;
+    shell)
+      bash "${SCRIPT_DIR}/${demo_path}"
+      ;;
+    jupyter)
+      # Future: jupyter nbconvert --execute
+      echo "⊘ Jupyter notebooks not yet supported"
+      return 1
+      ;;
+    *)
+      echo "⊘ Unknown type: $demo_type"
+      return 1
+      ;;
+  esac
+}
+
+# Main execution
 echo "=========================================="
-echo "Running demos..."
+if [ "$FILTER_TAGS" = "all" ]; then
+  echo "Running all demos..."
+else
+  echo "Running demos with tags: $FILTER_TAGS"
+fi
 echo "=========================================="
 echo ""
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Auto-discover and run all demos
 DEMOS_FOUND=0
 DEMOS_RUN=0
 DEMOS_SKIPPED=0
 
-# Find all demo.py files in demos/ subdirectories
-while IFS= read -r -d '' demo_file; do
+# Get filtered demos from manifest using Python parser
+while IFS='|' read -r demo_path demo_name demo_type demo_requires; do
   DEMOS_FOUND=$((DEMOS_FOUND + 1))
-  demo_name=$(basename "$(dirname "$demo_file")")
 
-  # Check if multi-agent demo requires SHOWROOM_OPENAI_API_KEY
-  if [[ "$demo_file" == *"multi_agent"* ]]; then
-    # Check if SHOWROOM_OPENAI_API_KEY is configured
-    has_openai_key=false
-    if [ -f ~/.lls_showroom ]; then
-      # shellcheck source=/dev/null
-      source ~/.lls_showroom
-      if [ -n "${SHOWROOM_OPENAI_API_KEY:-}" ]; then
-        has_openai_key=true
-      fi
-    fi
-
-    if [ "$has_openai_key" = false ]; then
-      echo "⊘ Skipping $demo_name demo (SHOWROOM_OPENAI_API_KEY not configured)"
+  # Check if required key exists
+  if [ -n "$demo_requires" ]; then
+    if ! check_required_key "$demo_requires"; then
+      echo "⊘ Skipping: $demo_name"
+      echo "  Reason: $demo_requires not configured"
       echo ""
       DEMOS_SKIPPED=$((DEMOS_SKIPPED + 1))
       continue
@@ -46,19 +89,39 @@ while IFS= read -r -d '' demo_file; do
   fi
 
   echo "=========================================="
-  echo "Running $demo_name demo..."
+  echo "Running: $demo_name"
   echo "=========================================="
   echo ""
 
-  uv run "$demo_file"
+  if run_demo "$demo_path" "$demo_type"; then
+    DEMOS_RUN=$((DEMOS_RUN + 1))
+  else
+    DEMOS_SKIPPED=$((DEMOS_SKIPPED + 1))
+  fi
 
   echo ""
-  DEMOS_RUN=$((DEMOS_RUN + 1))
-done < <(find "${SCRIPT_DIR}/demos" -type f -name "demo.py" -print0 | sort -z)
+done < <(uv run "${SCRIPT_DIR}/scripts/parse-manifest.py" "$FILTER_TAGS")
 
 echo "=========================================="
-echo "Summary: $DEMOS_RUN/$DEMOS_FOUND demos completed successfully"
-if [ $DEMOS_SKIPPED -gt 0 ]; then
-  echo "         $DEMOS_SKIPPED demo(s) skipped"
+if [ $DEMOS_FOUND -eq 0 ]; then
+  echo "No demos found matching tags: $FILTER_TAGS"
+  echo ""
+  echo "Available tags (from demos/manifest.yaml):"
+  python3 -c "
+import yaml
+with open('${SCRIPT_DIR}/demos/manifest.yaml') as f:
+    manifest = yaml.safe_load(f)
+    all_tags = set()
+    for demo in manifest.get('demos', []):
+        all_tags.update(demo.get('tags', []))
+    for tag in sorted(all_tags):
+        print(f'  - {tag}')
+"
+  exit 1
+else
+  echo "Summary: $DEMOS_RUN/$DEMOS_FOUND demos completed successfully"
+  if [ $DEMOS_SKIPPED -gt 0 ]; then
+    echo "         $DEMOS_SKIPPED demo(s) skipped"
+  fi
 fi
 echo "=========================================="
