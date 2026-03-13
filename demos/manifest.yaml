@@ -14,20 +14,26 @@
 #   ./test.sh complex      # Run complex demos only
 
 demos:
+  - path: demos/hello/demo.py
+    tags: [ci, fast, hello, basic]
+    name: Hello World - Simple Chat Completion
+    type: python
+    description: Minimal example showing a single chat completion request
+
   - path: demos/rag/demo.py
-    tags: [simple, rag, storage, embeddings]
+    tags: [ci, rag, embeddings]
     name: RAG with Vector Search Demo
     type: python
     description: Demonstrates RAG with S3 file storage, embeddings, and vector search
 
   - path: demos/responses/demo.py
-    tags: [simple, api, openai-compat]
+    tags: [ci, responses]
     name: OpenAI Responses API Demo
     type: python
     description: Verifies OpenAI SDK Responses API compatibility with multi-turn conversations
 
   - path: demos/multi_agent/demo.py
-    tags: [complex, agents, rag, openai-required]
+    tags: [ci, agents, rag, responses, mcp]
     name: Multi-Agent Research Assistant Demo
     type: python
     requires_key: SHOWROOM_OPENAI_API_KEY
