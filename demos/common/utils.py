@@ -14,14 +14,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-try:
-    from scripts.secrets_util import get_or_set, get
-except ImportError:
-    # Fallback if secrets_util is not available
-    def get_or_set(key: str, default: Optional[str] = None, **kwargs) -> Optional[str]:
-        return default or os.environ.get(key)
-    def get(key: str, default: Optional[str] = None, **kwargs) -> Optional[str]:
-        return default or os.environ.get(key)
+from scripts.secrets_util import get_or_set, get
 
 
 # Default Keycloak configuration

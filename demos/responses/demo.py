@@ -46,7 +46,6 @@ from openai import OpenAI
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.secrets_util import get_or_set, get
 from demos.common.utils import get_keycloak_token, load_demo_config
 
 
