@@ -4,6 +4,9 @@
 config_base.yaml
 kustomize/overlays/reference/config.yaml
 
+# Persistence test artifacts
+demos/tests/restarttest/temp_response_id.txt
+
 # Python cache
 __pycache__/
 *.pyc

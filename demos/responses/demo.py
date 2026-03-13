@@ -105,6 +105,52 @@ class ResponsesDemo:
             print(f"✗ Health check failed: {e}")
             return False
 
+    def _extract_content_from_output(self, output) -> str:
+        """Extract text content from response output items"""
+        content = ""
+        for item in output:
+            if hasattr(item, 'type') and item.type == 'message':
+                if hasattr(item, 'content'):
+                    for content_item in item.content:
+                        if hasattr(content_item, 'text'):
+                            content += content_item.text
+        return content
+
+    def _build_response_data_minimal(self, response, turn: int) -> Dict[str, Any]:
+        """Build minimal response data from retrieved response (for persistence loading)"""
+        return {
+            'id': response.id,
+            'content': self._extract_content_from_output(response.output),
+            'status': response.status if hasattr(response, 'status') else None,
+            'model': response.model,
+            'turn': turn
+        }
+
+    def _build_response_data_full(self, response, user_message: str,
+                                   instructions: Optional[str], turn: int) -> Dict[str, Any]:
+        """Build complete response data with usage info (for create_response)"""
+        response_data = {
+            'id': response.id,
+            'content': self._extract_content_from_output(response.output),
+            'status': response.status if hasattr(response, 'status') else None,
+            'user_message': user_message,
+            'instructions': instructions,
+            'model': response.model,
+            'turn': turn
+        }
+
+        # Add usage info if available
+        if response.usage:
+            response_data['usage'] = {
+                'input_tokens': response.usage.input_tokens if hasattr(response.usage, 'input_tokens') else 0,
+                'output_tokens': response.usage.output_tokens if hasattr(response.usage, 'output_tokens') else 0,
+                'total_tokens': response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0
+            }
+        else:
+            response_data['usage'] = {}
+
+        return response_data
+
     def create_response(self,
                        user_message: str,
                        instructions: Optional[str] = None,
@@ -148,31 +194,13 @@ class ResponsesDemo:
             # Call OpenAI Responses API - this verifies LlamaStack API conformance
             response = self.client.responses.create(**params)
 
-            # Extract response content and metadata from Responses API
-            # Response has 'output' field (list of items), not 'choices'
-            content = ""
-            for item in response.output:
-                # Look for message items with text content
-                if hasattr(item, 'type') and item.type == 'message':
-                    if hasattr(item, 'content'):
-                        for content_item in item.content:
-                            if hasattr(content_item, 'text'):
-                                content += content_item.text
-
-            response_data = {
-                'id': response.id,
-                'content': content,
-                'status': response.status if hasattr(response, 'status') else None,
-                'user_message': user_message,
-                'instructions': instructions if not is_continuation else None,
-                'model': response.model,
-                'usage': {
-                    'input_tokens': response.usage.input_tokens if hasattr(response.usage, 'input_tokens') else 0,
-                    'output_tokens': response.usage.output_tokens if hasattr(response.usage, 'output_tokens') else 0,
-                    'total_tokens': response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0
-                } if response.usage else {},
-                'turn': len(self.response_history) + 1
-            }
+            # Build response data using helper
+            response_data = self._build_response_data_full(
+                response=response,
+                user_message=user_message,
+                instructions=instructions if not is_continuation else None,
+                turn=len(self.response_history) + 1
+            )
 
             # Save to history
             self.response_history.append(response_data)
@@ -222,6 +250,18 @@ class ResponsesDemo:
         for turn in self.response_history:
             print(f"  Turn {turn['turn']}: {turn['id']}")
 
+    @staticmethod
+    def save_response_id(response_id: str, file_path: str) -> bool:
+        """Save response ID to file, return success status"""
+        try:
+            with open(file_path, 'w') as f:
+                f.write(response_id)
+            print(f"\nSaved response ID to: {file_path}")
+            return True
+        except Exception as e:
+            print(f"✗ Error saving response ID: {e}")
+            return False
+
 
 def main():
     # Parse command line arguments for demo-specific options
@@ -248,6 +288,10 @@ Examples:
 
     parser.add_argument('--prompt', type=str, default="What is a vector database?",
                         help='Initial question to ask (default: "What is a vector database?")')
+    parser.add_argument('--save-id', type=str, metavar='FILE',
+                        help='Save the last response ID to FILE after completion')
+    parser.add_argument('--load-id', type=str, metavar='FILE',
+                        help='Load response ID from FILE and continue conversation (persistence test mode)')
 
     args, remaining = parser.parse_known_args()
 
@@ -277,6 +321,57 @@ Examples:
 
     # Initialize the demo
     demo = ResponsesDemo(llamastack_url, keycloak_url, username, password, client_secret)
+
+    # Persistence test mode: Load and continue existing conversation
+    if args.load_id:
+        try:
+            with open(args.load_id, 'r') as f:
+                response_id = f.read().strip()
+            print(f"Loaded response ID: {response_id}")
+        except Exception as e:
+            print(f"✗ Error loading response ID from file: {e}")
+            sys.exit(1)
+
+        print("\n" + "=" * 60)
+        print("Persistence Test: Retrieve and Continue Conversation")
+        print("=" * 60)
+        print(f"\nResponse ID: {response_id}")
+
+        # Retrieve the saved response
+        print("\nStep 1: Retrieving saved response from database...")
+        retrieved_response = demo.client.responses.retrieve(response_id)
+
+        print("✅ Response retrieved successfully!")
+        print(f"  Response ID: {retrieved_response.id}")
+        print(f"  Model: {retrieved_response.model}")
+        print(f"  Status: {retrieved_response.status}")
+
+        # Add retrieved response to history so create_response() can continue from it
+        response_data = demo._build_response_data_minimal(retrieved_response, turn=1)
+        demo.response_history.append(response_data)
+
+        # Continue the conversation
+        print("\nStep 2: Continuing conversation from saved state...")
+        continued_response = demo.create_response(
+            user_message="Can you summarize what we just discussed in one sentence?"
+        )
+
+        if continued_response:
+            demo.print_response(continued_response)
+            print("\n✅ Persistence Test Complete!")
+            print("\nVerified:")
+            print(f"  ✓ Retrieved response ID: {response_id}")
+            print("  ✓ Response persisted in database")
+            print("  ✓ Successfully continued conversation from saved state")
+
+            # Save new response ID if requested
+            if args.save_id:
+                ResponsesDemo.save_response_id(continued_response['id'], args.save_id)
+        else:
+            print("\n✗ Failed to continue conversation.")
+            sys.exit(1)
+
+        sys.exit(0)
 
     # Check health
     if not demo.check_health():
@@ -314,6 +409,10 @@ When answering questions, be concise but informative. Keep all answers brief."""
         print("\nSingle-turn response completed successfully.")
         print("OpenAI SDK Responses API compatibility verified with custom prompt.")
         print("\nTo see multi-turn conversation demo, run without --prompt option.")
+
+        # Save response ID if requested
+        if args.save_id:
+            ResponsesDemo.save_response_id(response1['id'], args.save_id)
 
     else:
         # Multi-turn mode: Full demo showing conversation capabilities
@@ -387,6 +486,10 @@ When answering questions, be concise but informative. Keep all answers brief."""
         print("  - Response IDs are unique and trackable across turns")
         print("  - Instructions persist throughout the conversation")
         print("  - Context is maintained by including previous messages")
+
+        # Save last response ID if requested
+        if args.save_id:
+            ResponsesDemo.save_response_id(response3['id'], args.save_id)
 
 
 if __name__ == "__main__":

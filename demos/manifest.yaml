@@ -32,15 +32,15 @@ demos:
     type: python
     description: Verifies OpenAI SDK Responses API compatibility with multi-turn conversations
 
+  - path: demos/tests/restarttest/restarttest.sh
+    tags: [test, persistence, integration]
+    name: Response Persistence Test
+    type: shell
+    description: Verifies response persistence across pod restarts (requires oc cluster access)
+
   - path: demos/multi_agent/demo.py
     tags: [ci, agents, rag, responses, mcp]
     name: Multi-Agent Research Assistant Demo
     type: python
     requires_key: SHOWROOM_OPENAI_API_KEY
     description: Multi-agent system with triage routing to RAG, repository query, and general knowledge agents
-
-# Future: Add tests here
-# tests:
-#   - path: tests/milvus/test_oom.py
-#     tags: [test, milvus, storage]
-#     type: python

@@ -69,6 +69,7 @@ Or run individual demos directly:
 uv run demos/rag/demo.py              # RAG with S3 file storage and vector search
 uv run demos/responses/demo.py        # Multi-turn conversations with response tracking
 uv run demos/responses/demo.py --prompt "What is RAG?"  # Single-turn with custom question
+./demos/tests/restarttest/restarttest.sh  # Test response persistence across server restarts (requires `oc` cluster access)
 uv run demos/multi_agent/demo.py      # Multi-agent research assistant
 ```
 
