@@ -26,6 +26,12 @@ demos:
     type: jupyter
     description: Simple chat completion demo using Jupyter notebook
 
+  - path: demos/notebooks/rag_demo.sh
+    tags: [ci, rag, embeddings, jupyter, vector-store, end-to-end]
+    name: RAG End-to-End Demo - Indexing + Inference
+    type: shell
+    description: Complete RAG workflow combining index building and retrieval-augmented generation with question answering
+
   - path: demos/rag/demo.py
     tags: [ci, rag, embeddings]
     name: RAG with Vector Search Demo

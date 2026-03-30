@@ -91,13 +91,15 @@ Run notebook demos in test mode:
 
 Run interactively in your browser:
 ```bash
-uv run jupyter lab --notebook-dir=./demos/notebooks/
+./demos/notebooks/start_notebook.sh
 # Opens browser at http://localhost:8888
 # Run cells with Shift+Enter
 ```
 
 Available notebooks in `demos/notebooks/`:
 - `hello.ipynb` - Simple chat completion with authentication
+- `rag_indexing.ipynb` - Build RAG index from PDFs using Milvus vector store
+- `rag_inference.ipynb` - Retrieval-augmented generation with question answering
 
 ## Deploy Local Changes
 

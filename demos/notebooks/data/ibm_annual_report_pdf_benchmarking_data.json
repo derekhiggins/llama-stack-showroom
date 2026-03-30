@@ -1,0 +1,30 @@
+[
+  {
+    "correct_answer_document_ids": [
+      "ibm-annual-report-2024-pt1_1-20.pdf"
+    ],
+    "question": "What was the operating other income and expense in 2024?",
+    "correct_answer": "$1,656 million"
+  },
+  {
+    "correct_answer_document_ids": [
+      "ibm-annual-report-2024-pt1_1-20.pdf"
+    ],
+    "question": "What is the amount of gain on land/building dispositions included in \"Other\"",
+    "correct_answer": "$126 million"
+  },
+  {
+    "correct_answer_document_ids": [
+      "ibm-annual-report-2024-pt1_1-20.pdf"
+    ],
+    "question": "How much was the non-operating retirement-related costs in the current-year period?",
+    "correct_answer": "$3,457 million"
+  },
+  {
+    "correct_answer_document_ids": [
+      "ibm-annual-report-2024-pt1_1-20.pdf"
+    ],
+    "question": "What was the total revenue for year 2024?",
+    "correct_answer": "$62.8 billion"
+  }
+]

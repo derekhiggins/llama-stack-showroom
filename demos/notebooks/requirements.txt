@@ -1,0 +1,20 @@
+# RAG Notebook Dependencies
+# Isolated from main project to avoid conflicts with openai-agents
+
+# Core dependencies
+jupyter>=1.0.0
+nbconvert>=7.0.0
+llama-stack-client>=0.7.1
+python-dotenv>=1.0.0
+pyyaml>=6.0
+pip>=25.0.0
+ipykernel>=6.0.0
+
+# RAG-specific dependencies
+pypdf>=5.1.0
+langchain-core>=0.3.0
+langchain-text-splitters>=0.3.0
+
+# ai4rag from git (has conflicts with openai-agents)
+# Pinned to specific version for stability
+git+https://github.com/IBM/ai4rag.git@v0.5.4

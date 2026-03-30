@@ -13,6 +13,9 @@ __pycache__/
 *.pyo
 .pytest_cache/
 
+# Virtual environments
+demos/notebooks/.venv-rag/
+
 # Editor files
 .vscode/
 .idea/
