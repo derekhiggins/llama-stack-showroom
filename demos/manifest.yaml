@@ -20,6 +20,12 @@ demos:
     type: python
     description: Minimal example showing a single chat completion request
 
+  - path: demos/notebooks/hello.ipynb
+    tags: [ci, fast, hello, jupyter]
+    name: Hello World - Jupyter Notebook
+    type: jupyter
+    description: Simple chat completion demo using Jupyter notebook
+
   - path: demos/rag/demo.py
     tags: [ci, rag, embeddings]
     name: RAG with Vector Search Demo

@@ -48,9 +48,7 @@ run_demo() {
       bash "${SCRIPT_DIR}/${demo_path}"
       ;;
     jupyter)
-      # Future: jupyter nbconvert --execute
-      echo "⊘ Jupyter notebooks not yet supported"
-      return 1
+      uv run jupyter nbconvert --execute --to markdown --stdout "${SCRIPT_DIR}/${demo_path}" --log-level=ERROR
       ;;
     *)
       echo "⊘ Unknown type: $demo_type"

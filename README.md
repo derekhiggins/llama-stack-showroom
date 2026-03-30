@@ -81,6 +81,24 @@ uv run demos/responses/demo.py <LLAMASTACK_URL> <KEYCLOAK_URL> <USERNAME> <PASSW
 
 **Note**: The multi-agent demo requires `SHOWROOM_OPENAI_API_KEY` to be set in `~/.lls_showroom`.
 
+### Jupyter Notebooks
+
+Run notebook demos in test mode:
+```bash
+./test.sh jupyter         # Run all Jupyter notebooks
+./test.sh hello,jupyter   # Run notebooks tagged with 'hello' and 'jupyter'
+```
+
+Run interactively in your browser:
+```bash
+uv run jupyter lab --notebook-dir=./demos/notebooks/
+# Opens browser at http://localhost:8888
+# Run cells with Shift+Enter
+```
+
+Available notebooks in `demos/notebooks/`:
+- `hello.ipynb` - Simple chat completion with authentication
+
 ## Deploy Local Changes
 
 Test local LlamaStack code changes on the cluster for rapid iteration.
