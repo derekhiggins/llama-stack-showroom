@@ -2,6 +2,8 @@
 
 This guide covers deploying any agent from this repository to an OpenShift cluster using Helm.
 
+> **Full RHOAI Infrastructure?** This guide deploys individual agents. For complete Llama Stack infrastructure (VLLM, Milvus, PostgreSQL, Keycloak) on RHOAI, see the [main README](../README.md) and use `./setup.sh` + `./provision.sh`.
+
 ## Prerequisites
 
 - [oc CLI](https://docs.openshift.com/container-platform/latest/cli_reference/openshift_cli/getting-started-cli.html) installed
