@@ -33,7 +33,7 @@ demos:
     description: Verifies OpenAI SDK Responses API compatibility with multi-turn conversations
 
   - path: demos/tests/restarttest/restarttest.sh
-    tags: [test, persistence, integration]
+    tags: [ci, test, persistence, integration]
     name: Response Persistence Test
     type: shell
     description: Verifies response persistence across pod restarts (requires oc cluster access)
@@ -46,44 +46,44 @@ demos:
     description: Multi-agent system with triage routing to RAG, repository query, and general knowledge agents
 
   - path: demos/tests/abac_isolation/demo.py
-    tags: [test, abac, auth, security]
+    tags: [ci, test, abac, auth, security]
     name: ABAC Resource Isolation Test
     type: python
     description: Verifies ABAC ownership policies prevent cross-user resource access for vector stores, files, and responses
 
   # Agent demos - run via make run-cli with test input
   - path: agents/crewai/websearch_agent
-    tags: [agents, crewai]
+    tags: [ci, agents, crewai]
     name: CrewAI Web Search Agent
     type: agent
     description: CrewAI agent with web search tool
 
   - path: agents/google/adk
-    tags: [agents, google, adk]
+    tags: [ci, agents, google, adk]
     name: Google ADK Agent
     type: agent
     description: Google Agent Development Kit based agent
 
   - path: agents/langgraph/human_in_the_loop
-    tags: [agents, langgraph]
+    tags: [ci, agents, langgraph]
     name: LangGraph Human-in-the-Loop Agent
     type: agent
     description: LangGraph agent with human approval workflow
 
   - path: agents/langgraph/react_agent
-    tags: [agents, langgraph]
+    tags: [ci, agents, langgraph]
     name: LangGraph ReAct Agent
     type: agent
     description: LangGraph ReAct pattern agent
 
   - path: agents/llamaindex/websearch_agent
-    tags: [agents, llamaindex]
+    tags: [ci, agents, llamaindex]
     name: LlamaIndex Web Search Agent
     type: agent
     description: LlamaIndex agent with web search tool
 
   - path: agents/vanilla_python/openai_responses_agent
-    tags: [agents, vanilla]
+    tags: [ci, agents, vanilla]
     name: OpenAI Responses Agent
     type: agent
     description: Pure Python agent using OpenAI Responses API

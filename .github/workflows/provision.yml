@@ -62,7 +62,7 @@ jobs:
 
       - name: Run tests
         run: |
-          ${{ steps.setup.outputs.scripts_dir }}/test.sh
+          ${{ steps.setup.outputs.scripts_dir }}/test.sh ci
 
       - name: Debug - Capture OpenShift state
         if: always()

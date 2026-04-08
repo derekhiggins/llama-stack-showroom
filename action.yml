@@ -129,4 +129,4 @@ runs:
       id: showroom
       shell: bash
       run: |
-        echo "scripts_dir=${{ github.action_path }}" >> $GITHUB_OUTPUT
+        echo "scripts_dir=${{ github.action_path }}/scripts" >> $GITHUB_OUTPUT
