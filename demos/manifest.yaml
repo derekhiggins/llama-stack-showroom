@@ -8,10 +8,10 @@
 #   requires_key: Optional environment variable required to run
 #
 # Usage:
-#   ./test.sh              # Run all demos
-#   ./test.sh simple       # Run demos tagged 'simple'
-#   ./test.sh rag,api      # Run demos tagged 'rag' OR 'api'
-#   ./test.sh complex      # Run complex demos only
+#   ./scripts/test.sh              # Run all demos
+#   ./scripts/test.sh simple       # Run demos tagged 'simple'
+#   ./scripts/test.sh rag,api      # Run demos tagged 'rag' OR 'api'
+#   ./scripts/test.sh complex      # Run complex demos only
 
 demos:
   - path: demos/hello/demo.py

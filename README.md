@@ -34,8 +34,8 @@ cp config.sh.example ~/.lls_showroom
 # Edit ~/.lls_showroom with your values
 
 # Deploy infrastructure
-./setup.sh       # Install RHOAI operator and dependencies
-./provision.sh   # Deploy Llama Stack distribution
+./scripts/setup.sh       # Install RHOAI operator and dependencies
+./scripts/provision.sh   # Deploy Llama Stack distribution
 ```
 
 ## Agents
@@ -56,9 +56,9 @@ cp config.sh.example ~/.lls_showroom
 After deploying infrastructure, run demos to verify your setup:
 
 ```bash
-./test.sh              # Run all demos
-./test.sh simple       # Simple demos only
-./test.sh rag,api      # Specific tags
+./scripts/test.sh              # Run all demos
+./scripts/test.sh simple       # Simple demos only
+./scripts/test.sh rag,api      # Specific tags
 
 # Individual demos
 uv run demos/rag/demo.py
@@ -134,18 +134,18 @@ Test local LlamaStack code on the cluster:
 echo "export LLAMA_STACK_SOURCE_PATH=~/llama-stack" >> ~/.lls_showroom
 
 # Deploy and test
-./deploy-local.sh
-./test.sh
+./scripts/deploy-local.sh
+./scripts/test.sh
 
 # Revert when done
-./provision.sh
+./scripts/provision.sh
 ```
 
 ## Cleanup
 
 ```bash
-./unprovision.sh  # Remove Llama Stack distribution
-./cleanup.sh      # Remove RHOAI operator and dependencies
+./scripts/unprovision.sh  # Remove Llama Stack distribution
+./scripts/cleanup.sh      # Remove RHOAI operator and dependencies
 ```
 
 ## Contributing

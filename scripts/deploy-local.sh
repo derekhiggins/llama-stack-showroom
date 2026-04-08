@@ -225,7 +225,7 @@ $(envsubst < "${SCRIPT_DIR}/policies/replace-llama-stack-core.yaml.template")"
     log_success "Kyverno policy applied successfully"
   else
     log_error "Failed to apply Kyverno policy"
-    log_info "You may need to run ./setup.sh first to install Kyverno"
+    log_info "You may need to run ./scripts/setup.sh first to install Kyverno"
     exit 1
   fi
 }
@@ -251,7 +251,7 @@ update_deployment() {
     fi
   else
     log_warn "No LlamaStack pod found, it may not be deployed yet"
-    log_info "Run ./provision.sh to deploy LlamaStack"
+    log_info "Run ./scripts/provision.sh to deploy LlamaStack"
     return
   fi
 
@@ -328,7 +328,7 @@ main() {
   echo "Your local LlamaStack changes are now running on the cluster."
   echo "Route: https://$(oc get route llamastack-distribution -n ${DEV_IMAGE_NAMESPACE} -o jsonpath='{.spec.host}' 2>/dev/null)"
   echo ""
-  echo "To revert to the official image, run: ./provision.sh"
+  echo "To revert to the official image, run: ./scripts/provision.sh"
   echo ""
 }
 

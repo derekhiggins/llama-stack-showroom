@@ -60,7 +60,7 @@ export SHOWROOM_OPENAI_API_KEY="${SHOWROOM_OPENAI_API_KEY:-}"
 # ======================================
 # Deploy Local Changes Configuration
 # ======================================
-# Use ./deploy-local.sh to deploy local LlamaStack changes to the cluster
+# Use ./scripts/deploy-local.sh to deploy local LlamaStack changes to the cluster
 # See README.md for detailed documentation
 
 # Path to local llama-stack repository

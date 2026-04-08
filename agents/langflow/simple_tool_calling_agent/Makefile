@@ -27,7 +27,7 @@ init: ## Create local/.env from .env.example and generate secrets
 	fi
 
 run: init ## Start the local Langflow stack (Langflow + PostgreSQL + Langfuse)
-	@./deploy-local.sh
+	@./scripts/deploy-local.sh
 
 stop: ## Stop services (data preserved)
 	@./cleanup-local.sh
