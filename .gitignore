@@ -1,3 +1,4 @@
+# User configuration (stored outside repo)
 # User configuration is now stored in ~/.lls_showroom (outside repo)
 
 # Generated config files
@@ -7,11 +8,20 @@ kustomize/overlays/reference/config.yaml
 # Persistence test artifacts
 demos/tests/restarttest/temp_response_id.txt
 
-# Python cache
+# Python
 __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+*.egg-info/
+**egg-info*
+dist/
+.venv/
+
+# Environment
+.env*
+!.env.example
+config.toml
 
 # Editor files
 .vscode/
@@ -19,3 +29,19 @@ __pycache__/
 *.swp
 *.swo
 *~
+
+# OS
+.DS_Store
+**/.DS_Store
+
+# Infrastructure
+milvus_data/
+.helm-secrets.yaml
+
+# Agent-specific
+agents/langflow/simple_tool_calling_agent/local/.ollama-enabled
+*.db
+uv.lock
+
+# Claude
+CLAUDE.md

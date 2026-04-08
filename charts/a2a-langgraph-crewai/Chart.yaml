@@ -1,0 +1,6 @@
+apiVersion: v2
+name: a2a-langgraph-crewai
+description: A2A demo — CrewAI + LangGraph orchestrator (two Deployments, shared Secret)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

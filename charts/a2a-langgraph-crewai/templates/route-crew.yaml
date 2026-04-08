@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: a2a-crew-agent
+  labels:
+    app: a2a-crew-agent
+    {{- include "a2a.labels" . | nindent 4 }}
+spec:
+  to:
+    kind: Service
+    name: a2a-crew-agent
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: {{ .Values.openshift.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.openshift.route.tls.insecureEdgeTerminationPolicy }}
+  wildcardPolicy: None

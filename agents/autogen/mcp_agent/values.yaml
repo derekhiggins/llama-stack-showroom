@@ -1,0 +1,6 @@
+nameOverride: "autogen-mcp-agent"
+
+env:
+  MODEL_ID: ""
+  BASE_URL: ""
+  MCP_SERVER_URL: "http://mcp-automl:8080/sse"

@@ -1,0 +1,5 @@
+nameOverride: "langgraph-hitl-agent"
+
+env:
+  MODEL_ID: ""
+  BASE_URL: ""

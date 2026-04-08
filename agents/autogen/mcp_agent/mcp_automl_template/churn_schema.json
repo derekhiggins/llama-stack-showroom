@@ -1,0 +1,100 @@
+{
+  "type": "object",
+  "title": "ChurnPredictionInput",
+  "description": "Input features for Telco customer churn prediction (match AutoGluon/deployment training columns).",
+  "properties": {
+    "gender": {
+      "type": "string",
+      "description": "Customer gender.",
+      "enum": ["Female", "Male"]
+    },
+    "SeniorCitizen": {
+      "type": "integer",
+      "description": "Whether the customer is a senior citizen (0 or 1).",
+      "enum": [0, 1]
+    },
+    "Partner": {
+      "type": "string",
+      "description": "Whether the customer has a partner.",
+      "enum": ["Yes", "No"]
+    },
+    "Dependents": {
+      "type": "string",
+      "description": "Whether the customer has dependents.",
+      "enum": ["Yes", "No"]
+    },
+    "tenure": {
+      "type": "integer",
+      "description": "Number of months the customer has been with the company."
+    },
+    "PhoneService": {
+      "type": "string",
+      "description": "Whether the customer has phone service.",
+      "enum": ["Yes", "No"]
+    },
+    "MultipleLines": {
+      "type": "string",
+      "description": "Whether the customer has multiple lines.",
+      "enum": ["Yes", "No", "No phone service"]
+    },
+    "InternetService": {
+      "type": "string",
+      "description": "Type of internet service.",
+      "enum": ["DSL", "Fiber optic", "No"]
+    },
+    "OnlineSecurity": {
+      "type": "string",
+      "description": "Whether the customer has online security.",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "OnlineBackup": {
+      "type": "string",
+      "description": "Whether the customer has online backup.",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "DeviceProtection": {
+      "type": "string",
+      "description": "Whether the customer has device protection.",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "TechSupport": {
+      "type": "string",
+      "description": "Whether the customer has tech support.",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "StreamingTV": {
+      "type": "string",
+      "description": "Whether the customer has streaming TV.",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "StreamingMovies": {
+      "type": "string",
+      "description": "Whether the customer has streaming movies.",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "Contract": {
+      "type": "string",
+      "description": "Type of contract.",
+      "enum": ["Month-to-month", "One year", "Two year"]
+    },
+    "PaperlessBilling": {
+      "type": "string",
+      "description": "Whether the customer uses paperless billing.",
+      "enum": ["Yes", "No"]
+    },
+    "PaymentMethod": {
+      "type": "string",
+      "description": "Payment method.",
+      "enum": ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"]
+    },
+    "MonthlyCharges": {
+      "type": "number",
+      "description": "Monthly charges amount."
+    },
+    "TotalCharges": {
+      "type": "number",
+      "description": "Total charges (can be numeric or string in CSV; use number for API)."
+    }
+  },
+  "required": ["tenure", "Contract", "MonthlyCharges"]
+}

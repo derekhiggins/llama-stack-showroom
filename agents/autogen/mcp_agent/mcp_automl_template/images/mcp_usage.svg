@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 260" width="880" height="260">
+  <defs>
+    <style>
+      .box { fill: #f0f4fc; stroke-width: 2; rx: 8; }
+      .user { stroke: #4285f4; }
+      .client { stroke: #34a853; }
+      .server { stroke: #fbbc05; }
+      .deploy { stroke: #8e44ad; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .arrowhead { fill: #5f6368; }
+      .label { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; fill: #202124; }
+      .sublabel { font-family: system-ui, sans-serif; font-size: 11px; fill: #5f6368; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" class="arrowhead"/>
+    </marker>
+  </defs>
+  <!-- User -->
+  <rect x="20" y="90" width="140" height="80" class="box user"/>
+  <text x="90" y="125" class="label" text-anchor="middle">User</text>
+
+  <rect x="200" y="90" width="160" height="80" class="box client"/>
+  <text x="280" y="120" class="label" text-anchor="middle">Client</text>
+  <text x="280" y="145" class="sublabel" text-anchor="middle">Cursor / Ollama / ...</text>
+
+  <rect x="400" y="90" width="160" height="80" class="box server"/>
+  <text x="480" y="120" class="label" text-anchor="middle">MCP Server</text>
+  <text x="480" y="145" class="sublabel" text-anchor="middle">add, invoke_churn, ...</text>
+
+  <rect x="600" y="90" width="140" height="80" class="box deploy"/>
+  <text x="670" y="120" class="label" text-anchor="middle">AutoML</text>
+  <text x="670" y="145" class="sublabel" text-anchor="middle">Deployment</text>
+
+  <!-- Arrows forward -->
+  <line x1="160" y1="130" x2="200" y2="130" class="arrow" marker-end="url(#arrowhead)"/>
+  <line x1="360" y1="130" x2="400" y2="130" class="arrow" marker-end="url(#arrowhead)"/>
+  <line x1="560" y1="130" x2="600" y2="130" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Arrows back (response) -->
+  <line x1="600" y1="150" x2="560" y2="150" class="arrow" marker-end="url(#arrowhead)"/>
+  <line x1="400" y1="150" x2="360" y2="150" class="arrow" marker-end="url(#arrowhead)"/>
+  <line x1="200" y1="150" x2="160" y2="150" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- SSE label -->
+  <text x="480" y="195" class="sublabel" text-anchor="middle">SSE http://127.0.0.1:8000/sse</text>
+</svg>

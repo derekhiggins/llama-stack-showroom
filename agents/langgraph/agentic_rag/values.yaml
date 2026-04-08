@@ -1,0 +1,18 @@
+nameOverride: "langgraph-agentic-rag"
+
+env:
+  MODEL_ID: ""
+  BASE_URL: ""
+  EMBEDDING_MODEL: ""
+  EMBEDDING_DIMENSION: "768"
+  VECTOR_STORE_ID: ""
+  VECTOR_STORE_PROVIDER: "milvus"
+  VECTOR_STORE_PATH: "/opt/app-root/src/data/vector_store"
+
+volumes:
+  - name: vector-store
+    emptyDir: {}
+
+volumeMounts:
+  - name: vector-store
+    mountPath: /opt/app-root/src/data/vector_store

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: a2a-crew-agent
+  labels:
+    app: a2a-crew-agent
+    {{- include "a2a.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: a2a-crew-agent

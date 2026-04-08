@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+.env
+.git
+*.md
+template.env
+charts
+Makefile
+agent.yaml
+values.yaml
