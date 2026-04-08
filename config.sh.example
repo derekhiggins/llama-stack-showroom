@@ -1,4 +1,4 @@
-# Configuration file template for llama-stack-showroom
+# Configuration file template for llama-stack-platform
 #
 # This file is sourced by setup.sh and scripts from ~/.lls_showroom
 # All values can be overridden by setting the environment variable before running scripts
