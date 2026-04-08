@@ -101,11 +101,11 @@ if [ -z "${SHOWROOM_VLLM_EMBEDDING_URL:-}" ] || [ -z "${SHOWROOM_VLLM_EMBEDDING_
 fi
 
 # Validate overlay exists
-OVERLAY_PATH="${SCRIPT_DIR}/kustomize/overlays/${OVERLAY}"
+OVERLAY_PATH="${SCRIPT_DIR}/infrastructure/kustomize/overlays/${OVERLAY}"
 if [ ! -d "${OVERLAY_PATH}" ]; then
   echo "ERROR: Overlay '${OVERLAY}' not found at ${OVERLAY_PATH}"
   echo "Available overlays:"
-  ls -1 "${SCRIPT_DIR}/kustomize/overlays/"
+  ls -1 "${SCRIPT_DIR}/infrastructure/kustomize/overlays/"
   exit 1
 fi
 

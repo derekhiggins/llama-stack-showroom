@@ -3,7 +3,7 @@
 
 # Generated config files
 config_base.yaml
-kustomize/overlays/reference/config.yaml
+infrastructure/kustomize/overlays/reference/config.yaml
 
 # Persistence test artifacts
 demos/tests/restarttest/temp_response_id.txt
