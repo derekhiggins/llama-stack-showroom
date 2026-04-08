@@ -72,7 +72,7 @@ run-app-fresh: ## Kill existing process on port and run agent with hot-reload
 	  uv run uvicorn main:app --host 0.0.0.0 --port $${PORT:-8000} --reload --reload-exclude .venv
 
 run-cli: ## Run interactive CLI chat (no web server)
-	@source .venv/bin/activate && set -a && source .env && set +a && \
+	@set -a && source .env && set +a && \
 	  cd examples && uv run python execute_ai_service_locally.py
 
 build: ## Build container image locally (podman/docker)
