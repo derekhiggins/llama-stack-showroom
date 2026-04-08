@@ -1,5 +1,5 @@
 [project]
-name = "llama-stack-showroom"
+name = "llama-stack-platform"
 version = "0.0.0"  # Not a released package, version unused
 requires-python = ">=3.12"
 dependencies = [
@@ -10,3 +10,6 @@ dependencies = [
     "aiohttp>=3.9.0",
     "tabulate>=0.9.0",
 ]
+
+# Agent-specific dependencies are managed in each agent's pyproject.toml
+# This root pyproject.toml is for demos/ and scripts/
