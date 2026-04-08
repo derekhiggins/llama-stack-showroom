@@ -179,9 +179,9 @@ echo "  o Rewrite registry.redhat.io/rhoai/ -> quay.io/rhoai/"
 echo ""
 
 # Apply policies from files
-apply_with_retry "sync-secrets policy" "$(cat "${SCRIPT_DIR}/policies/sync-secrets.yaml")" || exit 1
-apply_with_retry "add-imagepullsecrets policy" "$(cat "${SCRIPT_DIR}/policies/add-imagepullsecrets.yaml")" || exit 1
-apply_with_retry "replace-image-registry policy" "$(cat "${SCRIPT_DIR}/policies/replace-image-registry.yaml")" || exit 1
+apply_with_retry "sync-secrets policy" "$(cat "${SCRIPT_DIR}/../policies/sync-secrets.yaml")" || exit 1
+apply_with_retry "add-imagepullsecrets policy" "$(cat "${SCRIPT_DIR}/../policies/add-imagepullsecrets.yaml")" || exit 1
+apply_with_retry "replace-image-registry policy" "$(cat "${SCRIPT_DIR}/../policies/replace-image-registry.yaml")" || exit 1
 
 echo ""
 echo "Rosa workaround policies applied successfully!"
@@ -219,13 +219,13 @@ spec:
   # Add llama-stack-core replacement rule if configured
   if [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ]; then
     POLICY_YAML+="
-$(envsubst < "${SCRIPT_DIR}/policies/replace-llama-stack-core.yaml.template")"
+$(envsubst < "${SCRIPT_DIR}/../policies/replace-llama-stack-core.yaml.template")"
   fi
 
   # Add llama-stack-operator replacement rule if configured
   if [ -n "$SHOWROOM_OPERATOR_IMAGE" ]; then
     POLICY_YAML+="
-$(envsubst < "${SCRIPT_DIR}/policies/replace-llama-stack-operator.yaml.template")"
+$(envsubst < "${SCRIPT_DIR}/../policies/replace-llama-stack-operator.yaml.template")"
   fi
 
   # Apply the policy with retry logic
@@ -384,7 +384,7 @@ fi
 
 # Extract the config file
 echo "Extracting config.yaml..."
-oc exec temp-config-extractor -n redhat-ods-operator -- cat /opt/app-root/config.yaml > "${SCRIPT_DIR}/config_base.yaml"
+oc exec temp-config-extractor -n redhat-ods-operator -- cat /opt/app-root/config.yaml > "${SCRIPT_DIR}/../config_base.yaml"
 echo "Cleaning up temporary pod..."
 oc delete pod temp-config-extractor -n redhat-ods-operator --force --grace-period=0 2>/dev/null || true
 

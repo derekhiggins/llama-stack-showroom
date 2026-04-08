@@ -71,20 +71,20 @@ if ! command -v uv &> /dev/null; then
   exit 1
 fi
 
-uv run "${SCRIPT_DIR}/scripts/generate_passwords.py" || {
+uv run "${SCRIPT_DIR}/generate_passwords.py" || {
   echo "ERROR: Failed to generate passwords"
   exit 1
 }
 echo ""
 
 # Export passwords as environment variables for envsubst
-POSTGRES_PASSWORD=$(uv run "${SCRIPT_DIR}/scripts/secrets_util.py" get POSTGRES_PASSWORD)
+POSTGRES_PASSWORD=$(uv run "${SCRIPT_DIR}/secrets_util.py" get POSTGRES_PASSWORD)
 export POSTGRES_PASSWORD
-MINIO_ROOT_PASSWORD=$(uv run "${SCRIPT_DIR}/scripts/secrets_util.py" get MINIO_ROOT_PASSWORD)
+MINIO_ROOT_PASSWORD=$(uv run "${SCRIPT_DIR}/secrets_util.py" get MINIO_ROOT_PASSWORD)
 export MINIO_ROOT_PASSWORD
-KEYCLOAK_ADMIN_PASSWORD=$(uv run "${SCRIPT_DIR}/scripts/secrets_util.py" get KEYCLOAK_ADMIN_PASSWORD)
+KEYCLOAK_ADMIN_PASSWORD=$(uv run "${SCRIPT_DIR}/secrets_util.py" get KEYCLOAK_ADMIN_PASSWORD)
 export KEYCLOAK_ADMIN_PASSWORD
-KEYCLOAK_PASSWORD=$(uv run "${SCRIPT_DIR}/scripts/secrets_util.py" get KEYCLOAK_PASSWORD)
+KEYCLOAK_PASSWORD=$(uv run "${SCRIPT_DIR}/secrets_util.py" get KEYCLOAK_PASSWORD)
 export KEYCLOAK_PASSWORD
 
 # Validate required configuration
@@ -101,11 +101,11 @@ if [ -z "${SHOWROOM_VLLM_EMBEDDING_URL:-}" ] || [ -z "${SHOWROOM_VLLM_EMBEDDING_
 fi
 
 # Validate overlay exists
-OVERLAY_PATH="${SCRIPT_DIR}/infrastructure/kustomize/overlays/${OVERLAY}"
+OVERLAY_PATH="${SCRIPT_DIR}/../infrastructure/kustomize/overlays/${OVERLAY}"
 if [ ! -d "${OVERLAY_PATH}" ]; then
   echo "ERROR: Overlay '${OVERLAY}' not found at ${OVERLAY_PATH}"
   echo "Available overlays:"
-  ls -1 "${SCRIPT_DIR}/infrastructure/kustomize/overlays/"
+  ls -1 "${SCRIPT_DIR}/../infrastructure/kustomize/overlays/"
   exit 1
 fi
 
@@ -133,7 +133,7 @@ echo ""
 # Add auth configuration to config.yaml if using reference overlay
 if [ "${OVERLAY}" = "reference" ]; then
   echo "Building config.yaml with ABAC auth configuration..."
-  cat "${SCRIPT_DIR}/config_base.yaml" "${OVERLAY_PATH}/config_abac.yaml.template" > "${OVERLAY_PATH}/config.yaml"
+  cat "${SCRIPT_DIR}/../config_base.yaml" "${OVERLAY_PATH}/config_abac.yaml.template" > "${OVERLAY_PATH}/config.yaml"
   echo "Config.yaml built successfully"
 fi
 
@@ -226,7 +226,7 @@ if [ "${OVERLAY}" = "reference" ]; then
   # Run Keycloak setup script
   echo ""
   echo "Running Keycloak configuration script..."
-  if [ -f "${SCRIPT_DIR}/scripts/setup-keycloak.py" ]; then
+  if [ -f "${SCRIPT_DIR}/setup-keycloak.py" ]; then
     # Check if uv is available
     if ! command -v uv &> /dev/null; then
       echo "ERROR: uv is required to run Python scripts (see Prerequisites in README.md)"
@@ -237,22 +237,22 @@ if [ "${OVERLAY}" = "reference" ]; then
     # Default admin password is 'admin' (configured in keycloak.yaml)
     KEYCLOAK_URL="${KEYCLOAK_EXTERNAL_URL}" \
     KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin}" \
-    uv run "${SCRIPT_DIR}/scripts/setup-keycloak.py"
+    uv run "${SCRIPT_DIR}/setup-keycloak.py"
 
     echo ""
     echo "Keycloak configuration completed!"
   else
-    echo "WARNING: Keycloak setup script not found at ${SCRIPT_DIR}/scripts/setup-keycloak.py"
+    echo "WARNING: Keycloak setup script not found at ${SCRIPT_DIR}/setup-keycloak.py"
     echo "You will need to configure Keycloak manually"
   fi
 
   # Save URLs and demo credentials to secrets file for convenience
   echo ""
   echo "Saving configuration to ~/.lls_showroom_generated for easy demo access..."
-  [ -n "$ROUTE_URL" ] && uv run "${SCRIPT_DIR}/scripts/secrets_util.py" set LLAMASTACK_URL "https://${ROUTE_URL}" 2>/dev/null || true
-  [ -n "$KEYCLOAK_EXTERNAL_URL" ] && uv run "${SCRIPT_DIR}/scripts/secrets_util.py" set KEYCLOAK_URL "${KEYCLOAK_EXTERNAL_URL}" 2>/dev/null || true
+  [ -n "$ROUTE_URL" ] && uv run "${SCRIPT_DIR}/secrets_util.py" set LLAMASTACK_URL "https://${ROUTE_URL}" 2>/dev/null || true
+  [ -n "$KEYCLOAK_EXTERNAL_URL" ] && uv run "${SCRIPT_DIR}/secrets_util.py" set KEYCLOAK_URL "${KEYCLOAK_EXTERNAL_URL}" 2>/dev/null || true
   # Save default demo user credentials (admin/<random-password>)
-  uv run "${SCRIPT_DIR}/scripts/secrets_util.py" set KEYCLOAK_USERNAME "admin" 2>/dev/null || true
+  uv run "${SCRIPT_DIR}/secrets_util.py" set KEYCLOAK_USERNAME "admin" 2>/dev/null || true
   # KEYCLOAK_PASSWORD is already set by generate_passwords.py, no need to set it again
 fi
 

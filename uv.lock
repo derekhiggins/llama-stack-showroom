@@ -598,7 +598,7 @@ wheels = [
 ]
 
 [[package]]
-name = "llama-stack-showroom"
+name = "llama-stack-platform"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
