@@ -36,11 +36,68 @@ check_required_key() {
   return 1
 }
 
+# Get Keycloak token and export agent env vars
+setup_agent_env() {
+  # Get config from secrets file
+  local llamastack_url keycloak_url username password client_secret
+  llamastack_url=$(uv run "${SCRIPT_DIR}/secrets_util.py" get LLAMASTACK_URL 2>/dev/null || true)
+  keycloak_url=$(uv run "${SCRIPT_DIR}/secrets_util.py" get KEYCLOAK_URL 2>/dev/null || true)
+  username=$(uv run "${SCRIPT_DIR}/secrets_util.py" get KEYCLOAK_USERNAME 2>/dev/null || true)
+  password=$(uv run "${SCRIPT_DIR}/secrets_util.py" get KEYCLOAK_PASSWORD 2>/dev/null || true)
+  client_secret=$(uv run "${SCRIPT_DIR}/secrets_util.py" get_or_set KEYCLOAK_CLIENT_SECRET 2>/dev/null || true)
+
+  if [ -z "$llamastack_url" ]; then
+    echo "ERROR: LLAMASTACK_URL not configured in ~/.lls_showroom_generated"
+    return 1
+  fi
+
+  export BASE_URL="${llamastack_url}/v1"
+  export MODEL_ID="vllm-inference/llama-3-2-3b"
+
+  # Get Keycloak token if configured
+  if [ -n "$keycloak_url" ] && [ -n "$username" ] && [ -n "$password" ] && [ -n "$client_secret" ]; then
+    local token
+    token=$(uv run python3 -c "
+import requests
+resp = requests.post(
+    '${keycloak_url}/realms/llamastack-demo/protocol/openid-connect/token',
+    data={
+        'client_id': 'llamastack',
+        'client_secret': '${client_secret}',
+        'username': '${username}',
+        'password': '${password}',
+        'grant_type': 'password'
+    }
+)
+resp.raise_for_status()
+print(resp.json()['access_token'])
+" 2>/dev/null)
+    if [ -n "$token" ]; then
+      export API_KEY="$token"
+    fi
+  fi
+
+  if [ -z "$API_KEY" ]; then
+    export API_KEY="not-needed"
+  fi
+}
+
 # Run agent unit tests
 run_agent_tests() {
   echo "=========================================="
-  echo "Running agent unit tests..."
+  echo "Running agent tests..."
   echo "=========================================="
+  echo ""
+
+  # Setup environment for all agents
+  if ! setup_agent_env; then
+    echo "Failed to setup agent environment"
+    return 1
+  fi
+
+  echo "BASE_URL: $BASE_URL"
+  echo "MODEL_ID: $MODEL_ID"
+  echo "API_KEY: ${API_KEY:0:20}..."
   echo ""
 
   local agents_tested=0
@@ -56,7 +113,20 @@ run_agent_tests() {
       echo "Testing: ${framework}/${agent_name}"
       echo "----------------------------------------"
 
-      if (cd "$agent_dir" && make test 2>&1); then
+      # Write .env with live values
+      cat > "$agent_dir/.env" <<EOF
+API_KEY=${API_KEY}
+BASE_URL=${BASE_URL}
+MODEL_ID=${MODEL_ID}
+EOF
+
+      # Run CLI with a test query (skip if no run-cli target)
+      if ! grep -q "run-cli:" "$agent_dir/Makefile"; then
+        echo "Skipping: no run-cli target"
+        continue
+      fi
+
+      if (cd "$agent_dir" && echo "tell me about Red Hat OpenShift AI" | make run-cli 2>&1); then
         agents_tested=$((agents_tested + 1))
       else
         agents_failed=$((agents_failed + 1))
@@ -93,6 +163,17 @@ run_demo() {
       echo "Jupyter notebooks not yet supported"
       return 1
       ;;
+    agent)
+      # Run agent via make run-cli with test input
+      setup_agent_env || return 1
+      local agent_dir="${REPO_ROOT}/${demo_path}"
+      cat > "$agent_dir/.env" <<EOF
+API_KEY=${API_KEY}
+BASE_URL=${BASE_URL}
+MODEL_ID=${MODEL_ID}
+EOF
+      (cd "$agent_dir" && echo "tell me about Red Hat OpenShift AI" | make run-cli)
+      ;;
     *)
       echo "Unknown type: $demo_type"
       return 1
@@ -100,11 +181,7 @@ run_demo() {
   esac
 }
 
-# Check for special modes
-if [ "$FILTER_TAGS" = "agents" ]; then
-  run_agent_tests
-  exit $?
-fi
+# Note: "agents" tag is handled via manifest like other tags
 
 # Main execution
 echo "=========================================="
