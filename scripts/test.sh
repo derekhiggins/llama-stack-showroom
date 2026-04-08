@@ -9,8 +9,9 @@ if ! command -v uv &> /dev/null; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Parse command line arguments for tag filtering
+# Parse command line arguments
 FILTER_TAGS="${1:-all}"
 
 # Check if required environment key exists
@@ -35,6 +36,46 @@ check_required_key() {
   return 1
 }
 
+# Run agent unit tests
+run_agent_tests() {
+  echo "=========================================="
+  echo "Running agent unit tests..."
+  echo "=========================================="
+  echo ""
+
+  local agents_tested=0
+  local agents_failed=0
+
+  # Find all agents with test directories
+  for agent_dir in "${REPO_ROOT}"/agents/*/*; do
+    if [ -d "$agent_dir/tests" ] && [ -f "$agent_dir/Makefile" ]; then
+      agent_name=$(basename "$agent_dir")
+      framework=$(basename "$(dirname "$agent_dir")")
+
+      echo "----------------------------------------"
+      echo "Testing: ${framework}/${agent_name}"
+      echo "----------------------------------------"
+
+      if (cd "$agent_dir" && make test 2>&1); then
+        agents_tested=$((agents_tested + 1))
+      else
+        agents_failed=$((agents_failed + 1))
+        echo "FAILED: ${framework}/${agent_name}"
+      fi
+      echo ""
+    fi
+  done
+
+  echo "=========================================="
+  echo "Agent tests: $agents_tested passed, $agents_failed failed"
+  echo "=========================================="
+
+  if [ $agents_failed -gt 0 ]; then
+    return 1
+  fi
+  return 0
+}
+
 # Run a demo based on its type
 run_demo() {
   local demo_path="$1"
@@ -42,22 +83,28 @@ run_demo() {
 
   case "$demo_type" in
     python)
-      uv run "${SCRIPT_DIR}/${demo_path}"
+      uv run "${REPO_ROOT}/${demo_path}"
       ;;
     shell)
-      bash "${SCRIPT_DIR}/${demo_path}"
+      bash "${REPO_ROOT}/${demo_path}"
       ;;
     jupyter)
       # Future: jupyter nbconvert --execute
-      echo "⊘ Jupyter notebooks not yet supported"
+      echo "Jupyter notebooks not yet supported"
       return 1
       ;;
     *)
-      echo "⊘ Unknown type: $demo_type"
+      echo "Unknown type: $demo_type"
       return 1
       ;;
   esac
 }
+
+# Check for special modes
+if [ "$FILTER_TAGS" = "agents" ]; then
+  run_agent_tests
+  exit $?
+fi
 
 # Main execution
 echo "=========================================="
@@ -81,7 +128,7 @@ while IFS='|' read -r demo_path demo_name demo_type demo_requires; do
   # Check if required key exists
   if [ -n "$demo_requires" ]; then
     if ! check_required_key "$demo_requires"; then
-      echo "⊘ Skipping: $demo_name"
+      echo "Skipping: $demo_name"
       echo "  Reason: $demo_requires not configured"
       echo ""
       DEMOS_SKIPPED=$((DEMOS_SKIPPED + 1))
@@ -101,7 +148,7 @@ while IFS='|' read -r demo_path demo_name demo_type demo_requires; do
   fi
 
   echo ""
-done < <(uv run "${SCRIPT_DIR}/scripts/parse-manifest.py" "$FILTER_TAGS")
+done < <(uv run "${SCRIPT_DIR}/parse-manifest.py" "$FILTER_TAGS")
 
 echo "=========================================="
 if [ $DEMOS_FOUND -eq 0 ]; then
@@ -110,7 +157,7 @@ if [ $DEMOS_FOUND -eq 0 ]; then
   echo "Available tags (from demos/manifest.yaml):"
   python3 -c "
 import yaml
-with open('${SCRIPT_DIR}/demos/manifest.yaml') as f:
+with open('${REPO_ROOT}/demos/manifest.yaml') as f:
     manifest = yaml.safe_load(f)
     all_tags = set()
     for demo in manifest.get('demos', []):
@@ -118,6 +165,9 @@ with open('${SCRIPT_DIR}/demos/manifest.yaml') as f:
     for tag in sorted(all_tags):
         print(f'  - {tag}')
 "
+  echo ""
+  echo "Special modes:"
+  echo "  - agents  (run agent unit tests)"
   exit 1
 else
   echo "Summary: $DEMOS_RUN/$DEMOS_FOUND demos completed successfully"
