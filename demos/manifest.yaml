@@ -50,3 +50,9 @@ demos:
     name: ABAC Resource Isolation Test
     type: python
     description: Verifies ABAC ownership policies prevent cross-user resource access for vector stores, files, and responses
+
+  - path: demos/conversations/demo.py
+    tags: [ci, conversations, api]
+    name: Conversations API Demo
+    type: python
+    description: Demonstrates conversation creation, multi-turn dialogue, and continuation testing
