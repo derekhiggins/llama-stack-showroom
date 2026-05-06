@@ -2,12 +2,11 @@
 
 ## Overview
 
-Two Helm charts replace the old `provision.sh` / `unprovision.sh` workflow:
-
-| Chart | What it deploys | Depends on |
-|-------|----------------|------------|
-| `llama-stack-infra` | PostgreSQL, etcd, Milvus, MinIO, Keycloak | Nothing |
-| `llama-stack-rhoai` | DSCInitialization, DataScienceCluster, LlamaStackDistribution CR, Route | RHOAI operator + llama-stack-infra |
+| Component | What it deploys | Managed by |
+|-----------|----------------|------------|
+| `manifests/` | DSCInitialization, DataScienceCluster | `oc apply` (in provision script) |
+| `llama-stack-infra` | PostgreSQL, etcd, Milvus, MinIO, Keycloak | Helm |
+| `llama-stack-rhoai` | LlamaStackDistribution CR, Route, NetworkPolicy | Helm |
 
 ## Prerequisites
 
@@ -19,9 +18,6 @@ Two Helm charts replace the old `provision.sh` / `unprovision.sh` workflow:
 
 ### Step 1: Set up cluster-level prerequisites
 
-This installs the pull secret, Kyverno policies, and RHOAI operator. These are
-cluster-scoped resources that cannot be expressed as Helm charts.
-
 ```bash
 # Copy and edit config if you haven't already
 cp config.sh.example ~/.lls_showroom
@@ -31,33 +27,9 @@ cp config.sh.example ~/.lls_showroom
 ./setup.sh
 ```
 
-> **Note:** `setup.sh` does NOT deploy application workloads — it only installs
-> the operator and cluster policies. This is equivalent to the planned
-> `scripts/setup-cluster.sh` (Story 3).
-
-### Step 2: Deploy infrastructure services
+### Step 2: Create local values file
 
 ```bash
-helm install llama-stack-infra charts/llama-stack-infra \
-  -n redhat-ods-applications --create-namespace --wait --timeout 5m
-```
-
-This creates:
-- PostgreSQL, etcd, Milvus, MinIO, Keycloak deployments
-- Auto-generated passwords in Kubernetes secrets (`postgres-secret`,
-  `minio-secret`, `keycloak-secret`)
-- A post-install Job that configures Keycloak (realm, client, roles, demo users)
-
-Verify:
-```bash
-oc get pods -n redhat-ods-applications
-# All pods should be Running, keycloak-setup should be Completed
-```
-
-### Step 3: Deploy LlamaStack
-
-```bash
-# Create a local values file with your vLLM credentials (gitignored)
 cat > values-local.yaml <<EOF
 llamastack:
   inference:
@@ -67,38 +39,31 @@ llamastack:
     vllmUrl: "https://your-vllm-embedding-endpoint/v1"
     vllmApiToken: "your-embedding-token"
 EOF
-
-helm install llama-stack-rhoai charts/llama-stack-rhoai \
-  -n redhat-ods-applications -f values-local.yaml
 ```
 
-This creates the DSCInitialization, DataScienceCluster, and
-LlamaStackDistribution CRs. The operator will reconcile and start the
-LlamaStack pod.
+### Step 3: Deploy everything
 
-Wait for LlamaStack to be ready:
 ```bash
-oc get pods -n redhat-ods-applications -l app=llama-stack -w
+./helm-provision.sh
 ```
 
-### Step 4: Sync secrets and run tests
+This runs the full deployment in order:
+1. `oc apply` DSCInitialization and DataScienceCluster (waits for Ready)
+2. `helm install` llama-stack-infra (PostgreSQL, etcd, Milvus, MinIO, Keycloak)
+3. `helm install` llama-stack-rhoai (LlamaStackDistribution, Route, NetworkPolicy)
+4. Waits for LlamaStackDistribution to be ready
+5. Syncs generated secrets to `~/.lls_showroom_generated`
+
+### Step 4: Run tests
 
 ```bash
-# Extract generated credentials + route URLs to local config
-./scripts/sync-secrets.sh
-
-# Run tests
 ./test.sh
 ```
-
-`sync-secrets.sh` writes to `~/.lls_showroom_generated` which test.sh and demo
-notebooks read for credentials and URLs.
 
 ## Teardown
 
 ```bash
-helm uninstall llama-stack-rhoai -n redhat-ods-applications
-helm uninstall llama-stack-infra -n redhat-ods-applications
+./helm-unprovision.sh
 
 # Optional: remove operator and cluster-level resources
 ./cleanup.sh
@@ -107,13 +72,14 @@ helm uninstall llama-stack-infra -n redhat-ods-applications
 ## Upgrade
 
 ```bash
-# Update chart code, then:
-helm upgrade llama-stack-infra charts/llama-stack-infra -n redhat-ods-applications
-helm upgrade llama-stack-rhoai charts/llama-stack-rhoai -n redhat-ods-applications
+# After updating chart code or values-local.yaml:
+./helm-provision.sh
 ```
 
-Passwords are preserved across upgrades (the templates use `lookup` to check
-for existing secrets before generating new ones).
+The provision script uses `helm upgrade --install`, so it handles both
+first-time install and subsequent upgrades. Passwords are preserved
+across upgrades (the templates use `lookup` to check for existing
+secrets before generating new ones).
 
 ## Customization
 
@@ -142,34 +108,14 @@ helm install llama-stack-infra charts/llama-stack-infra \
   --set postgres.auth.existingSecret=my-postgres-secret
 ```
 
-### Use a values file
-
-```yaml
-# my-values.yaml
-postgres:
-  auth:
-    password: "my-password"
-minio:
-  auth:
-    rootPassword: "my-minio-password"
-keycloak:
-  setup:
-    enabled: false  # skip Keycloak configuration
-```
-
-```bash
-helm install llama-stack-infra charts/llama-stack-infra \
-  -n redhat-ods-applications -f my-values.yaml
-```
-
 ### Disable auth
 
-```bash
-helm install llama-stack-rhoai charts/llama-stack-rhoai \
-  -n redhat-ods-applications \
-  --set llamastack.auth.enabled=false \
-  --set llamastack.inference.vllmUrl=$VLLM_URL \
-  --set llamastack.inference.vllmApiToken=$VLLM_TOKEN
+Add to `values-local.yaml`:
+
+```yaml
+llamastack:
+  auth:
+    enabled: false
 ```
 
 ## Secret Management
@@ -186,6 +132,13 @@ with `helm.sh/resource-policy: keep`:
 
 ## Components Reference
 
+### manifests/
+
+| File | Description |
+|------|-------------|
+| dscinitialization.yaml | DSCInitialization CR — managed by `oc apply` to avoid Helm ownership conflicts with the operator |
+| datasciencecluster.yaml | DataScienceCluster CR with llamastackoperator Managed |
+
 ### llama-stack-infra
 
 | Subchart | Resources | Ports |
@@ -200,8 +153,6 @@ with `helm.sh/resource-policy: keep`:
 
 | Template | Description |
 |----------|-------------|
-| dscinitialization.yaml | DSCInitialization CR (toggleable) |
-| datasciencecluster.yaml | DataScienceCluster CR with llamastackoperator managed (toggleable) |
-| llamastackdistribution.yaml | LlamaStackDistribution CR with 30+ env vars |
-| route.yaml | OpenShift Route for LlamaStack API (toggleable) |
-| networkpolicy.yaml | Allow ingress on port 8321 from OpenShift router (toggleable) |
+| llamastackdistribution.yaml | LlamaStackDistribution CR with env vars for inference, embedding, postgres, auth, milvus, S3 |
+| route.yaml | OpenShift Route for LlamaStack API |
+| networkpolicy.yaml | Allow ingress on port 8321 from OpenShift router |

@@ -1,11 +1,7 @@
-{{- if .Values.datasciencecluster.enabled }}
 apiVersion: datasciencecluster.opendatahub.io/v2
 kind: DataScienceCluster
 metadata:
-  name: {{ .Values.datasciencecluster.name }}
-  labels:
-    app.kubernetes.io/name: datasciencecluster
-    {{- include "llama-stack-rhoai.labels" . | nindent 4 }}
+  name: default-dsc
 spec:
   components:
     aipipelines:
@@ -49,4 +45,3 @@ spec:
     workbenches:
       managementState: Removed
       workbenchNamespace: rhods-notebooks
-{{- end }}

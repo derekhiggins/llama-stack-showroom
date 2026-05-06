@@ -1,11 +1,3 @@
-dscinitialization:
-  enabled: true
-  name: default-dsci
-
-datasciencecluster:
-  enabled: true
-  name: default-dsc
-
 llamastack:
   name: llamastack-distribution
   replicas: 1
