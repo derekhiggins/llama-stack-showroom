@@ -57,15 +57,19 @@ oc get pods -n redhat-ods-applications
 ### Step 3: Deploy LlamaStack
 
 ```bash
-# Source your config for the vLLM URLs
-source ~/.lls_showroom
+# Create a local values file with your vLLM credentials (gitignored)
+cat > values-local.yaml <<EOF
+llamastack:
+  inference:
+    vllmUrl: "https://your-vllm-inference-endpoint/v1"
+    vllmApiToken: "your-inference-token"
+  embedding:
+    vllmUrl: "https://your-vllm-embedding-endpoint/v1"
+    vllmApiToken: "your-embedding-token"
+EOF
 
 helm install llama-stack-rhoai charts/llama-stack-rhoai \
-  -n redhat-ods-applications \
-  --set llamastack.inference.vllmUrl=$SHOWROOM_VLLM_URL \
-  --set llamastack.inference.vllmApiToken=$SHOWROOM_VLLM_API_TOKEN \
-  --set llamastack.embedding.vllmUrl=$SHOWROOM_VLLM_EMBEDDING_URL \
-  --set llamastack.embedding.vllmApiToken=$SHOWROOM_VLLM_EMBEDDING_API_TOKEN
+  -n redhat-ods-applications -f values-local.yaml
 ```
 
 This creates the DSCInitialization, DataScienceCluster, and
