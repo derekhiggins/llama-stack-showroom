@@ -1,0 +1,21 @@
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: 26.0.0
+  pullPolicy: IfNotPresent
+
+auth:
+  adminPassword: ""
+  clientSecret: ""
+  demoAdminPassword: ""
+  demoUserPassword: ""
+
+route:
+  enabled: true
+
+setup:
+  enabled: true
+  image:
+    repository: registry.redhat.io/ubi9/python-311
+    tag: latest
+    pullPolicy: IfNotPresent
+  backoffLimit: 5

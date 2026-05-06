@@ -1,0 +1,70 @@
+dscinitialization:
+  enabled: true
+  name: default-dsci
+
+datasciencecluster:
+  enabled: true
+  name: default-dsc
+
+llamastack:
+  name: llamastack-distribution
+  replicas: 1
+  distribution: rh-dev
+  port: 8321
+
+  inference:
+    model: llama-3-2-3b
+    vllmUrl: ""
+    vllmApiToken: ""
+
+  embedding:
+    model: nomic-embed-text-v1.5
+    providerModelId: nomic-ai/nomic-embed-text-v1.5
+    dimension: "768"
+    provider: vllm-embedding
+    vllmUrl: ""
+    vllmApiToken: ""
+    maxTokens: "4096"
+    tlsVerify: "true"
+
+  postgres:
+    host: postgres
+    port: "5432"
+    secretName: postgres-secret
+
+  auth:
+    enabled: true
+    issuer: ""
+    audience: account
+    jwksUri: http://keycloak:8080/realms/llamastack-demo/protocol/openid-connect/certs
+    verifyTls: "false"
+
+  milvus:
+    endpoint: http://milvus:19530
+    token: ""
+    secure: "false"
+    consistencyLevel: Strong
+
+  s3:
+    enabled: "true"
+    bucketName: llamastack-files
+    endpointUrl: http://minio:9000
+    secretName: minio-secret
+    autoCreateBucket: "true"
+    region: us-east-1
+
+  openaiApiKey: ""
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+route:
+  enabled: true
+
+networkPolicy:
+  enabled: true

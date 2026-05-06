@@ -1,0 +1,12 @@
+image:
+  repository: quay.io/coreos/etcd
+  tag: v3.5.5
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "250m"

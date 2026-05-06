@@ -1,0 +1,87 @@
+postgres:
+  enabled: true
+  image:
+    repository: registry.redhat.io/rhel9/postgresql-15
+    tag: latest
+  auth:
+    username: llamastack
+    database: llamastack
+    password: ""
+    existingSecret: ""
+  persistence:
+    size: 20Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+etcd:
+  enabled: true
+  image:
+    repository: quay.io/coreos/etcd
+    tag: v3.5.5
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+milvus:
+  enabled: true
+  image:
+    repository: quay.io/ehu-aaet3/imagehost
+    tag: milvus-2.5.26
+  persistence:
+    size: 50Gi
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+minio:
+  enabled: true
+  image:
+    repository: quay.io/minio/minio
+    tag: latest
+  auth:
+    rootUser: minioadmin
+    rootPassword: ""
+    existingSecret: ""
+  persistence:
+    size: 20Gi
+  route:
+    enabled: true
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+keycloak:
+  enabled: true
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: 26.0.0
+  auth:
+    adminPassword: ""
+    clientSecret: ""
+    demoAdminPassword: ""
+    demoUserPassword: ""
+  route:
+    enabled: true
+  setup:
+    enabled: true
+    image:
+      repository: registry.redhat.io/ubi9/python-311
+      tag: latest
+    backoffLimit: 5

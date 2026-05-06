@@ -1,0 +1,29 @@
+LlamaStack infrastructure services have been deployed.
+
+Enabled components:
+{{- if index .Values "postgres" "enabled" }}
+  - PostgreSQL (port 5432)
+{{- end }}
+{{- if index .Values "etcd" "enabled" }}
+  - etcd (port 2379)
+{{- end }}
+{{- if index .Values "milvus" "enabled" }}
+  - Milvus (gRPC: 19530, metrics: 9091)
+{{- end }}
+{{- if index .Values "minio" "enabled" }}
+  - MinIO (API: 9000, console: 9001)
+{{- end }}
+{{- if index .Values "keycloak" "enabled" }}
+  - Keycloak (port 8080)
+{{- end }}
+
+Sync generated secrets to local config (required for test.sh and demos):
+
+  ./scripts/sync-secrets.sh
+
+Next step: deploy LlamaStack with the llama-stack-rhoai chart:
+
+  helm install llama-stack-rhoai charts/llama-stack-rhoai \
+    -n {{ .Release.Namespace }} \
+    --set llamastack.inference.vllmUrl=$VLLM_URL \
+    --set llamastack.inference.vllmApiToken=$VLLM_TOKEN

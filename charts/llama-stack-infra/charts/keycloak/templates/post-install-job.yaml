@@ -1,0 +1,73 @@
+{{- if .Values.setup.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-setup
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: {{ .Values.setup.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        app: keycloak-setup
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-keycloak
+          image: "{{ .Values.setup.image.repository }}:{{ .Values.setup.image.tag }}"
+          imagePullPolicy: {{ .Values.setup.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for Keycloak to be ready..."
+              until curl -sf http://keycloak:8080/ > /dev/null 2>&1; do
+                echo "Keycloak not ready yet, retrying in 5s..."
+                sleep 5
+              done
+              echo "Keycloak is ready."
+      containers:
+        - name: setup
+          image: "{{ .Values.setup.image.repository }}:{{ .Values.setup.image.tag }}"
+          imagePullPolicy: {{ .Values.setup.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              pip install --quiet requests pyyaml && python /scripts/setup-keycloak.py
+          env:
+            - name: KEYCLOAK_URL
+              value: "http://keycloak:8080"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" . }}
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" . }}
+                  key: KEYCLOAK_CLIENT_SECRET
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" . }}
+                  key: KEYCLOAK_PASSWORD
+            - name: KEYCLOAK_DEMO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" . }}
+                  key: KEYCLOAK_DEMO_PASSWORD
+          volumeMounts:
+            - name: setup-script
+              mountPath: /scripts
+      volumes:
+        - name: setup-script
+          configMap:
+            name: keycloak-setup-script
+{{- end }}

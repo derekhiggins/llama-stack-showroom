@@ -1,0 +1,14 @@
+{{- if .Values.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: keycloak
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: keycloak
+{{- end }}

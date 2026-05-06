@@ -1,0 +1,23 @@
+image:
+  repository: cgr.dev/chainguard/minio
+  tag: latest
+  pullPolicy: IfNotPresent
+
+auth:
+  rootUser: minioadmin
+  rootPassword: ""
+  existingSecret: ""
+
+persistence:
+  size: 20Gi
+
+route:
+  enabled: true
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"

@@ -1,0 +1,15 @@
+image:
+  repository: quay.io/ehu-aaet3/imagehost
+  tag: milvus-2.5.26
+  pullPolicy: IfNotPresent
+
+persistence:
+  size: 50Gi
+
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"

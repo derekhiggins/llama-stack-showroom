@@ -1,0 +1,105 @@
+apiVersion: llamastack.io/v1alpha1
+kind: LlamaStackDistribution
+metadata:
+  name: {{ .Values.llamastack.name }}
+  labels:
+    {{- include "llama-stack-rhoai.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.llamastack.replicas }}
+  server:
+    containerSpec:
+      env:
+        # Inference
+        - name: INFERENCE_MODEL
+          value: {{ .Values.llamastack.inference.model | quote }}
+        - name: VLLM_API_TOKEN
+          value: {{ .Values.llamastack.inference.vllmApiToken | quote }}
+        - name: VLLM_URL
+          value: {{ .Values.llamastack.inference.vllmUrl | quote }}
+        # Embedding
+        - name: EMBEDDING_MODEL
+          value: {{ .Values.llamastack.embedding.model | quote }}
+        - name: EMBEDDING_PROVIDER
+          value: {{ .Values.llamastack.embedding.provider | quote }}
+        - name: EMBEDDING_PROVIDER_MODEL_ID
+          value: {{ .Values.llamastack.embedding.providerModelId | quote }}
+        - name: EMBEDDING_DIMENSION
+          value: {{ .Values.llamastack.embedding.dimension | quote }}
+        - name: VLLM_EMBEDDING_URL
+          value: {{ .Values.llamastack.embedding.vllmUrl | quote }}
+        - name: VLLM_EMBEDDING_API_TOKEN
+          value: {{ .Values.llamastack.embedding.vllmApiToken | quote }}
+        - name: VLLM_EMBEDDING_MAX_TOKENS
+          value: {{ .Values.llamastack.embedding.maxTokens | quote }}
+        - name: VLLM_EMBEDDING_TLS_VERIFY
+          value: {{ .Values.llamastack.embedding.tlsVerify | quote }}
+        # OpenAI
+        - name: OPENAI_API_KEY
+          value: {{ .Values.llamastack.openaiApiKey | quote }}
+        # PostgreSQL
+        - name: POSTGRES_HOST
+          value: {{ .Values.llamastack.postgres.host | quote }}
+        - name: POSTGRES_PORT
+          value: {{ .Values.llamastack.postgres.port | quote }}
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.llamastack.postgres.secretName }}
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.llamastack.postgres.secretName }}
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.llamastack.postgres.secretName }}
+              key: POSTGRES_PASSWORD
+        {{- if .Values.llamastack.auth.enabled }}
+        # Auth (Keycloak ABAC)
+        - name: AUTH_ISSUER
+          value: {{ include "llama-stack-rhoai.authIssuer" . | trim | quote }}
+        - name: AUTH_AUDIENCE
+          value: {{ .Values.llamastack.auth.audience | quote }}
+        - name: AUTH_JWKS_URI
+          value: {{ .Values.llamastack.auth.jwksUri | quote }}
+        - name: AUTH_VERIFY_TLS
+          value: {{ .Values.llamastack.auth.verifyTls | quote }}
+        {{- end }}
+        # Milvus
+        - name: MILVUS_ENDPOINT
+          value: {{ .Values.llamastack.milvus.endpoint | quote }}
+        - name: MILVUS_TOKEN
+          value: {{ .Values.llamastack.milvus.token | quote }}
+        - name: MILVUS_SECURE
+          value: {{ .Values.llamastack.milvus.secure | quote }}
+        - name: MILVUS_CONSISTENCY_LEVEL
+          value: {{ .Values.llamastack.milvus.consistencyLevel | quote }}
+        # MinIO / S3
+        - name: ENABLE_S3
+          value: {{ .Values.llamastack.s3.enabled | quote }}
+        - name: S3_BUCKET_NAME
+          value: {{ .Values.llamastack.s3.bucketName | quote }}
+        - name: S3_ENDPOINT_URL
+          value: {{ .Values.llamastack.s3.endpointUrl | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.llamastack.s3.secretName }}
+              key: MINIO_ROOT_USER
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.llamastack.s3.secretName }}
+              key: MINIO_ROOT_PASSWORD
+        - name: S3_AUTO_CREATE_BUCKET
+          value: {{ .Values.llamastack.s3.autoCreateBucket | quote }}
+        - name: AWS_DEFAULT_REGION
+          value: {{ .Values.llamastack.s3.region | quote }}
+      name: llama-stack
+      port: {{ .Values.llamastack.port }}
+      resources:
+        {{- toYaml .Values.llamastack.resources | nindent 8 }}
+    distribution:
+      name: {{ .Values.llamastack.distribution }}
