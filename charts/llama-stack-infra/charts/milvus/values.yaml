@@ -4,7 +4,7 @@ image:
   pullPolicy: IfNotPresent
 
 persistence:
-  size: 50Gi
+  size: 10Gi
 
 resources:
   requests:

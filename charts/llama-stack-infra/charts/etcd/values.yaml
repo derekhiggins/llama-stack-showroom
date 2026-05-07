@@ -1,7 +1,10 @@
 image:
   repository: quay.io/coreos/etcd
-  tag: v3.5.5
+  tag: v3.5.25
   pullPolicy: IfNotPresent
+
+persistence:
+  size: 2Gi
 
 resources:
   requests:

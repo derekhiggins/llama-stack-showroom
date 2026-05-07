@@ -9,6 +9,8 @@ spec:
   selector:
     matchLabels:
       {{- include "postgres.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -40,8 +42,32 @@ spec:
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/pgsql/data
+          livenessProbe:
+            exec:
+              command:
+                - /usr/libexec/check-container
+                - --live
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /usr/libexec/check-container
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:

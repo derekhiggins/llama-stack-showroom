@@ -22,7 +22,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - etcd
-            - --advertise-client-urls=http://127.0.0.1:2379
+            - --advertise-client-urls=http://etcd:2379
             - --listen-client-urls=http://0.0.0.0:2379
             - --data-dir=/etcd
           ports:
@@ -41,9 +41,34 @@ spec:
               value: "4294967296"
             - name: ETCD_SNAPSHOT_COUNT
               value: "50000"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 2379
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 2379
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: etcd-data
-          emptyDir: {}
-      restartPolicy: Always
+          persistentVolumeClaim:
+            claimName: etcd-pvc
