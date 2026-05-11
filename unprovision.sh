@@ -2,78 +2,41 @@
 
 set -euo pipefail
 
-echo "=========================================="
-echo "Unprovisioning CRs..."
-echo "=========================================="
-echo ""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NAMESPACE="redhat-ods-applications"
 
-# Delete Route
-echo "Removing Route..."
-oc delete route llamastack-distribution -n redhat-ods-applications --ignore-not-found=true
-
-# Delete NetworkPolicy
-echo "Removing NetworkPolicy..."
-oc delete networkpolicy llamastack-allow-ingress -n redhat-ods-applications --ignore-not-found=true
-
-# Delete LlamaStackDistribution
-echo "Removing LlamaStackDistribution..."
-oc delete llamastackdistribution llamastack-distribution -n redhat-ods-applications --ignore-not-found=true --timeout=60s
-
-# Delete ConfigMaps
-echo "Removing ConfigMaps..."
-oc delete configmap llamastack-config -n redhat-ods-applications --ignore-not-found=true
-
-# Delete Milvus
-echo "Removing Milvus..."
-oc delete deployment milvus -n redhat-ods-applications --ignore-not-found=true --timeout=60s
-oc delete service milvus -n redhat-ods-applications --ignore-not-found=true
-oc delete pvc milvus-pvc -n redhat-ods-applications --ignore-not-found=true
-oc delete networkpolicy milvus-allow-ingress -n redhat-ods-applications --ignore-not-found=true
-
-# Delete MinIO
-echo "Removing MinIO..."
-oc delete deployment minio -n redhat-ods-applications --ignore-not-found=true --timeout=60s
-oc delete service minio -n redhat-ods-applications --ignore-not-found=true
-oc delete route minio-console -n redhat-ods-applications --ignore-not-found=true
-oc delete pvc minio-pvc -n redhat-ods-applications --ignore-not-found=true
-oc delete secret minio-secret -n redhat-ods-applications --ignore-not-found=true
-oc delete networkpolicy minio-allow-ingress -n redhat-ods-applications --ignore-not-found=true
-echo "  Note: All files stored in MinIO have been permanently deleted"
-
-# Delete etcd
-echo "Removing etcd..."
-oc delete deployment etcd -n redhat-ods-applications --ignore-not-found=true --timeout=60s
-oc delete service etcd -n redhat-ods-applications --ignore-not-found=true
-oc delete networkpolicy etcd-allow-ingress -n redhat-ods-applications --ignore-not-found=true
-
-# Delete PostgreSQL
-echo "Removing PostgreSQL..."
-oc delete deployment postgres -n redhat-ods-applications --ignore-not-found=true --timeout=60s
-oc delete service postgres -n redhat-ods-applications --ignore-not-found=true
-oc delete pvc postgres-pvc -n redhat-ods-applications --ignore-not-found=true
-oc delete secret postgres-secret -n redhat-ods-applications --ignore-not-found=true
-
-# Delete DataScienceCluster
-echo "Removing DataScienceCluster..."
-oc delete datasciencecluster default-dsc --ignore-not-found=true --timeout=60s
-
-# Delete DSCInitialization
-echo "Removing DSCInitialization..."
-oc delete dscinitializations --all --ignore-not-found=true --timeout=60s
-
-# Delete Keycloak resources (if reference overlay was used)
-echo "Removing Keycloak resources..."
-oc delete deployment keycloak -n redhat-ods-applications --ignore-not-found=true --timeout=60s
-oc delete service keycloak -n redhat-ods-applications --ignore-not-found=true
-oc delete route keycloak -n redhat-ods-applications --ignore-not-found=true
-oc delete configmap keycloak-import -n redhat-ods-applications --ignore-not-found=true
+echo "Uninstalling llama-stack-rhoai..."
+if helm status llama-stack-rhoai -n "${NAMESPACE}" &>/dev/null; then
+  helm uninstall llama-stack-rhoai -n "${NAMESPACE}" --timeout 5m --debug 2>&1 || {
+    echo "WARNING: helm uninstall failed. Cleaning up stuck release..."
+    oc delete secret -n "${NAMESPACE}" -l name=llama-stack-rhoai,owner=helm 2>/dev/null || true
+  }
+else
+  echo "llama-stack-rhoai not found, skipping."
+fi
 
 echo ""
-echo "=========================================="
-echo "Unprovisioning complete!"
-echo "=========================================="
+echo "Uninstalling llama-stack-infra..."
+if helm status llama-stack-infra -n "${NAMESPACE}" &>/dev/null; then
+  helm uninstall llama-stack-infra -n "${NAMESPACE}" --timeout 5m || {
+    echo "WARNING: helm uninstall failed. Cleaning up stuck release..."
+    oc delete secret -n "${NAMESPACE}" -l name=llama-stack-infra,owner=helm 2>/dev/null || true
+  }
+else
+  echo "llama-stack-infra not found, skipping."
+fi
+
 echo ""
-echo "Note: The redhat-ods-applications namespace is managed by RHOAI and is not removed."
-echo "To do a full cleanup including the RHOAI operator, run:"
-echo "  ./cleanup.sh"
+echo "Removing DataScienceCluster and DSCInitialization..."
+oc delete -f "${SCRIPT_DIR}/manifests/datasciencecluster.yaml" --timeout=120s 2>/dev/null || true
+oc delete -f "${SCRIPT_DIR}/manifests/dscinitialization.yaml" --timeout=120s 2>/dev/null || true
+
 echo ""
+echo "Cleaning up Helm hook resources..."
+oc delete job -l app.kubernetes.io/managed-by=Helm -n "${NAMESPACE}" 2>/dev/null || true
+
+echo ""
+echo "Teardown complete."
+echo ""
+echo "Note: Secrets with resource-policy 'keep' are preserved."
+echo "To remove them: oc delete secret postgres-secret minio-secret keycloak-secret -n ${NAMESPACE}"

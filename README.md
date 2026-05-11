@@ -4,7 +4,7 @@ Reference architecture and CI for [Llama Stack](https://github.com/meta-llama/ll
 
 ## Status
 
-**Work in Progress** - This repository is actively evolving toward a production-ready reference architecture for Llama Stack on RHOAI. While core functionality is operational (deployment, authentication, RAG demos), we're continuously expanding components, refining kustomize overlays, and adding demo scripts to showcase Llama Stack capabilities in action.
+**Work in Progress** - This repository is actively evolving toward a production-ready reference architecture for Llama Stack on RHOAI. While core functionality is operational (deployment, authentication, RAG demos), we're continuously expanding components, refining Helm charts, and adding demo scripts to showcase Llama Stack capabilities in action.
 
 ## Purpose
 
@@ -23,8 +23,8 @@ Reference architecture and CI for [Llama Stack](https://github.com/meta-llama/ll
 │  ├─ Inference: VLLM (llama-3-2-3b)                  │
 │  ├─ Embeddings: VLLM (nomic-embed-text-v1.5)        │
 │  ├─ Auth: Keycloak OAuth2 (RBAC + Team-based)       │
-│  ├─ Vector Store: Milvus (50Gi)                     │
-│  └─ Storage: PostgreSQL (20Gi)                      │
+│  ├─ Vector Store: Milvus (10Gi)                     │
+│  └─ Storage: PostgreSQL (5Gi)                       │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -184,5 +184,5 @@ This enables testing ODH/upstream builds before they're released.
 
 Contributions welcome in:
 - Additional demo scripts (reuse from [llama-stack-demos](https://github.com/opendatahub-io/llama-stack-demos))
-- Kustomize overlays to work towards a single refarch
+- Helm chart improvements and new subcharts
 - CI/CD improvements and test coverage

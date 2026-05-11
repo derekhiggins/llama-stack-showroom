@@ -44,7 +44,7 @@ EOF
 ### Step 3: Deploy everything
 
 ```bash
-./helm-provision.sh
+./provision.sh
 ```
 
 This runs the full deployment in order:
@@ -63,7 +63,7 @@ This runs the full deployment in order:
 ## Teardown
 
 ```bash
-./helm-unprovision.sh
+./unprovision.sh
 
 # Optional: remove operator and cluster-level resources
 ./cleanup.sh
@@ -73,7 +73,7 @@ This runs the full deployment in order:
 
 ```bash
 # After updating chart code or values-local.yaml:
-./helm-provision.sh
+./provision.sh
 ```
 
 The provision script uses `helm upgrade --install`, so it handles both
@@ -143,9 +143,9 @@ with `helm.sh/resource-policy: keep`:
 
 | Subchart | Resources | Ports |
 |----------|-----------|-------|
-| postgres | Secret, PVC (20Gi), Deployment, Service, NetworkPolicy | 5432 |
-| etcd | Deployment, Service, NetworkPolicy | 2379 |
-| milvus | PVC (50Gi), Deployment, Service, NetworkPolicy | 19530, 9091 |
+| postgres | Secret, PVC (5Gi), Deployment, Service, NetworkPolicy | 5432 |
+| etcd | PVC (2Gi), Deployment, Service, NetworkPolicy | 2379 |
+| milvus | PVC (10Gi), Deployment, Service, NetworkPolicy | 19530, 9091 |
 | minio | Secret, PVC (20Gi), Deployment, Service, Route, NetworkPolicy | 9000, 9001 |
 | keycloak | Secret, Deployment, Service, Route, post-install Job | 8080 |
 
