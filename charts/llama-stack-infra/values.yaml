@@ -9,7 +9,7 @@ postgres:
     password: ""
     existingSecret: ""
   persistence:
-    size: 20Gi
+    size: 5Gi
   resources:
     requests:
       memory: "512Mi"
@@ -22,7 +22,9 @@ etcd:
   enabled: true
   image:
     repository: quay.io/coreos/etcd
-    tag: v3.5.5
+    tag: v3.5.25
+  persistence:
+    size: 2Gi
   resources:
     requests:
       memory: "128Mi"
@@ -37,7 +39,7 @@ milvus:
     repository: quay.io/ehu-aaet3/imagehost
     tag: milvus-2.5.26
   persistence:
-    size: 50Gi
+    size: 10Gi
   resources:
     requests:
       memory: "1Gi"
@@ -49,7 +51,7 @@ milvus:
 minio:
   enabled: true
   image:
-    repository: quay.io/minio/minio
+    repository: cgr.dev/chainguard/minio
     tag: latest
   auth:
     rootUser: minioadmin
