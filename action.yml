@@ -83,6 +83,25 @@ runs:
           done <<< "$ENV_VARS"
         fi
 
+        # Source config to read SHOWROOM_* variables
+        source ~/.lls_showroom
+
+        # Generate values-local.yaml for Helm provisioning
+        cat > ${{ github.action_path }}/values-local.yaml <<EOF
+        llamastack:
+          inference:
+            vllmUrl: "${SHOWROOM_VLLM_URL:-}"
+            vllmApiToken: "${SHOWROOM_VLLM_API_TOKEN:-}"
+            model: "${SHOWROOM_INFERENCE_MODEL:-llama-3-2-3b}"
+          embedding:
+            vllmUrl: "${SHOWROOM_VLLM_EMBEDDING_URL:-}"
+            vllmApiToken: "${SHOWROOM_VLLM_EMBEDDING_API_TOKEN:-}"
+            model: "${SHOWROOM_EMBEDDING_MODEL:-nomic-embed-text-v1.5}"
+            providerModelId: "${SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID:-nomic-ai/nomic-embed-text-v1.5}"
+            dimension: "${SHOWROOM_EMBEDDING_DIMENSION:-768}"
+          openaiApiKey: "${SHOWROOM_OPENAI_API_KEY:-}"
+        EOF
+
     - name: Pre-flight cluster check
       if: inputs.oc_server != '' && inputs.oc_token != ''
       shell: bash
