@@ -27,7 +27,7 @@ from demos.common.utils import get_keycloak_token, load_demo_config
 
 
 # Configuration
-EMBEDDING_MODEL = "vllm-embedding/nomic-ai/nomic-embed-text-v1.5"
+EMBEDDING_MODEL = "vllm-embedding/nomic-embed-text-v1.5"
 EMBEDDING_DIMENSION = 768
 DEFAULT_VECTOR_STORE_NAME = "multi-agent-kb"
 MCP_DEEPWIKI_URL = "https://mcp.deepwiki.com/mcp"

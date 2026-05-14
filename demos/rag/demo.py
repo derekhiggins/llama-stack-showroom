@@ -136,7 +136,7 @@ class LlamaStackDemo:
             print(f"✗ Failed to list models: {e}")
             return []
 
-    def generate_embeddings(self, texts: List[str], model: str = "vllm-embedding/nomic-ai/nomic-embed-text-v1.5") -> List[List[float]]:
+    def generate_embeddings(self, texts: List[str], model: str = "vllm-embedding/nomic-embed-text-v1.5") -> List[List[float]]:
         """Generate embeddings for a list of texts"""
         try:
             payload = {
@@ -167,7 +167,7 @@ class LlamaStackDemo:
         try:
             payload = {
                 "vector_store_id": name,
-                "embedding_model": "vllm-embedding/nomic-ai/nomic-embed-text-v1.5",
+                "embedding_model": "vllm-embedding/nomic-embed-text-v1.5",
                 "embedding_dimension": embedding_dimension,
                 "provider_id": provider_id
             }
@@ -200,7 +200,7 @@ class LlamaStackDemo:
                     "chunk_id": f"{doc['metadata']['source']}_{i}",
                     "content": doc['content'],
                     "embedding": embedding,
-                    "embedding_model": "vllm-embedding/nomic-ai/nomic-embed-text-v1.5",
+                    "embedding_model": "vllm-embedding/nomic-embed-text-v1.5",
                     "embedding_dimension": len(embedding),
                     "chunk_metadata": {
                         "source": doc['metadata']['source'],

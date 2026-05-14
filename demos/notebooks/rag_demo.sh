@@ -55,15 +55,10 @@ fi
 # Set model names from values-local.yaml with fallback defaults
 INFERENCE_MODEL_NAME="$(read_yaml llamastack.inference.model)"
 INFERENCE_MODEL_NAME="${INFERENCE_MODEL_NAME:-llama-3-2-3b}"
-EMBEDDING_MODEL_NAME="$(read_yaml llamastack.embedding.providerModelId)"
-EMBEDDING_MODEL_NAME="${EMBEDDING_MODEL_NAME:-nomic-ai/nomic-embed-text-v1.5}"
+EMBEDDING_MODEL_NAME="$(read_yaml llamastack.embedding.model)"
+EMBEDDING_MODEL_NAME="${EMBEDDING_MODEL_NAME:-nomic-embed-text-v1.5}"
 EMBEDDING_DIM="$(read_yaml llamastack.embedding.dimension)"
 EMBEDDING_DIM="${EMBEDDING_DIM:-768}"
-
-# Add nomic-ai/ prefix to embedding model if not present
-if [[ "$EMBEDDING_MODEL_NAME" == "nomic-embed-text-v1.5" ]]; then
-  EMBEDDING_MODEL_NAME="nomic-ai/nomic-embed-text-v1.5"
-fi
 
 # Construct full model IDs with provider prefix
 export LLM_MODEL="vllm-inference/${INFERENCE_MODEL_NAME}"

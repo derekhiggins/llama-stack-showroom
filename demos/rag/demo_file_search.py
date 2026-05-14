@@ -24,7 +24,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from demos.common.utils import get_keycloak_token, load_demo_config
 
-EMBEDDING_MODEL = "vllm-embedding/nomic-ai/nomic-embed-text-v1.5"
+EMBEDDING_MODEL = "vllm-embedding/nomic-embed-text-v1.5"
 EMBEDDING_DIMENSION = 768
 INFERENCE_MODEL = "vllm-inference/llama-3-2-3b"
 

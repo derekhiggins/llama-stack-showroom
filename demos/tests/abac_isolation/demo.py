@@ -108,7 +108,7 @@ class ABACIsolationTest:
 
             payload = {
                 "vector_store_id": name,
-                "embedding_model": "vllm-embedding/nomic-ai/nomic-embed-text-v1.5",
+                "embedding_model": "vllm-embedding/nomic-embed-text-v1.5",
                 "embedding_dimension": 768,
                 "provider_id": "milvus-remote"
             }
