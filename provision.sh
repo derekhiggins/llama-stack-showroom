@@ -63,8 +63,8 @@ helm upgrade --install llama-stack-rhoai "${SCRIPT_DIR}/charts/llama-stack-rhoai
   -n "${NAMESPACE}" -f "${VALUES_FILE}" --wait --timeout 15m
 
 echo ""
-echo "Waiting for LlamaStackDistribution to be ready..."
-oc wait --for=jsonpath='{.status.phase}'=Ready llamastackdistribution/llamastack-distribution \
+echo "Waiting for OGXServer to be ready..."
+oc wait --for=jsonpath='{.status.phase}'=Ready ogxserver/llamastack-distribution \
   -n "${NAMESPACE}" --timeout=600s
 
 echo ""

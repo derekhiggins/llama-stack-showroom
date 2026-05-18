@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Configuration
 NAMESPACE="redhat-ods-applications"
-POD_LABEL="app=llama-stack"
+POD_LABEL="app=ogx"
 MAX_WAIT_SECONDS=300
 POLL_INTERVAL=5
 

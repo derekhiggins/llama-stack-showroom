@@ -24,6 +24,8 @@ spec:
       defaultLocalQueueName: default
       managementState: Removed
     llamastackoperator:
+      managementState: Removed
+    ogx:
       managementState: Managed
     mlflowoperator:
       managementState: Removed

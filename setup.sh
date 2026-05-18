@@ -28,8 +28,8 @@ SHOWROOM_LLAMA_STACK_IMAGE="$(read_yaml cluster.llamaStackImage)"
 SHOWROOM_OPERATOR_IMAGE="$(read_yaml cluster.operatorImage)"
 
 # Apply defaults for optional values
-SHOWROOM_CATALOG_IMAGE="${SHOWROOM_CATALOG_IMAGE:-quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.4}"
-SHOWROOM_OPERATOR_CHANNEL="${SHOWROOM_OPERATOR_CHANNEL:-stable-3.4}"
+SHOWROOM_CATALOG_IMAGE="${SHOWROOM_CATALOG_IMAGE:-quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.5-ea.1}"
+SHOWROOM_OPERATOR_CHANNEL="${SHOWROOM_OPERATOR_CHANNEL:-beta}"
 
 # Validate dependencies
 if ! command -v jq &> /dev/null; then
