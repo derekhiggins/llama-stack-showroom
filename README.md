@@ -1,16 +1,16 @@
-# Llama Stack Showroom
+# OGX Showroom
 
-Reference architecture and CI for [Llama Stack](https://github.com/meta-llama/llama-stack) on Red Hat OpenShift AI (RHOAI).
+Reference architecture and CI for [OGX](https://github.com/ogx-ai/ogx) on Red Hat OpenShift AI (RHOAI).
 
 ## Status
 
-**Work in Progress** - This repository is actively evolving toward a production-ready reference architecture for Llama Stack on RHOAI. While core functionality is operational (deployment, authentication, RAG demos), we're continuously expanding components, refining Helm charts, and adding demo scripts to showcase Llama Stack capabilities in action.
+**Work in Progress** - This repository is actively evolving toward a production-ready reference architecture for OGX on RHOAI. While core functionality is operational (deployment, authentication, RAG demos), we're continuously expanding components, refining Helm charts, and adding demo scripts to showcase OGX capabilities in action.
 
 ## Purpose
 
-1. **Reference Architecture**: Production-ready deployment of Llama Stack using RHOAI components (VLLM, PostgreSQL, Milvus, Keycloak)
+1. **Reference Architecture**: Production-ready deployment of OGX using RHOAI components (VLLM, PostgreSQL, Milvus, Keycloak)
 2. **Automated Testing**: CI that validates deployments with example client scripts
-3. **Integration Testing**: Test RHOAI/ODH/upstream Llama Stack images through GitHub Actions
+3. **Integration Testing**: Test RHOAI/ODH/upstream OGX images through GitHub Actions
 4. **Demo Scripts**: Reusable examples (RAG, authentication) for downstream projects
 
 > **Note**: Documentation is intentionally kept minimal during early development to avoid rapid obsolescence. Use LLMs to explore the codebase and understand usage patterns.
@@ -19,7 +19,7 @@ Reference architecture and CI for [Llama Stack](https://github.com/meta-llama/ll
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ Llama Stack Distribution (CRD)                      │
+│ OGX Distribution (CRD)                               │
 │  ├─ Inference: VLLM (llama-3-2-3b)                  │
 │  ├─ Embeddings: VLLM (nomic-embed-text-v1.5)        │
 │  ├─ Auth: Keycloak OAuth2 (RBAC + Team-based)       │
@@ -47,7 +47,7 @@ cp values-local.yaml.example values-local.yaml
 
 ```bash
 ./setup.sh       # Install RHOAI operator and dependencies
-./provision.sh   # Deploy Llama Stack distribution
+./provision.sh   # Deploy OGX distribution
 ```
 
 ## Run Demos
@@ -75,11 +75,11 @@ uv run demos/multi_agent/demo.py      # Multi-agent research assistant
 
 With explicit parameters:
 ```bash
-uv run demos/rag/demo.py <LLAMASTACK_URL> <KEYCLOAK_URL> <USERNAME> <PASSWORD>
-uv run demos/responses/demo.py <LLAMASTACK_URL> <KEYCLOAK_URL> <USERNAME> <PASSWORD>
+uv run demos/rag/demo.py <OGX_URL> <KEYCLOAK_URL> <USERNAME> <PASSWORD>
+uv run demos/responses/demo.py <OGX_URL> <KEYCLOAK_URL> <USERNAME> <PASSWORD>
 ```
 
-**Note**: The multi-agent demo requires `llamastack.openaiApiKey` to be set in `values-local.yaml`.
+**Note**: The multi-agent demo requires `ogx.openaiApiKey` to be set in `values-local.yaml`.
 
 ### Jupyter Notebooks
 
@@ -103,24 +103,24 @@ Available notebooks in `demos/notebooks/`:
 
 ## Deploy Local Changes
 
-Test local LlamaStack code changes on the cluster for rapid iteration.
+Test local OGX code changes on the cluster for rapid iteration.
 
 ### Quick Start
 
 ```bash
-# 1. Clone llama-stack locally
-git clone https://github.com/meta-llama/llama-stack ~/llama-stack
+# 1. Clone ogx locally
+git clone https://github.com/ogx-ai/ogx ~/ogx
 
 # 2. Configure (add to values-local.yaml)
 #    devLocal:
-#      llamaStackSourcePath: ~/llama-stack
+#      ogxSourcePath: ~/ogx
 
 # 3. Deploy your changes
 ./deploy-local.sh
 # → Builds image, pushes to in-cluster registry, restarts pod, shows logs
 
 # 4. Test your changes
-curl https://$(oc get route llamastack-distribution -o jsonpath='{.spec.host}')/v1/health
+curl https://$(oc get route ogx-distribution -o jsonpath='{.spec.host}')/v1/health
 
 # 5. Revert to official image when done
 ./provision.sh
@@ -134,9 +134,9 @@ Add to `values-local.yaml` under `devLocal:` (see `values-local.yaml.example`):
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `devLocal.llamaStackSourcePath` | *(required)* | Path to local llama-stack repository |
+| `devLocal.ogxSourcePath` | *(required)* | Path to local OGX source repository |
 | `devLocal.imageNamespace` | `redhat-ods-applications` | Namespace for images |
-| `devLocal.imageName` | `llama-stack-dev` | Image name |
+| `devLocal.imageName` | `ogx-dev` | Image name |
 | `devLocal.imageTag` | `dev-YYYYMMDD-HHMMSS` | Image tag (auto-generated) |
 | `devLocal.baseImage` | *(auto-detected)* | Base image to use |
 | `devLocal.containerTool` | `podman` | Container tool (podman/docker) |
@@ -158,17 +158,17 @@ oc patch configs.imageregistry.operator.openshift.io/cluster \
 **Pod not using dev image**:
 ```bash
 # Check Kyverno policy exists
-oc get clusterpolicy replace-rhoai-llama-stack-images
+oc get clusterpolicy replace-rhoai-ogx-images
 
 # Check pod image
-oc get pod -l app=llama-stack -n redhat-ods-applications \
+oc get pod -l app=ogx -n redhat-ods-applications \
   -o jsonpath='{.items[0].spec.containers[0].image}'
 ```
 
 ## Cleanup
 
 ```bash
-./unprovision.sh  # Remove Llama Stack distribution
+./unprovision.sh  # Remove OGX distribution
 ./cleanup.sh      # Remove RHOAI operator and dependencies
 ```
 
@@ -176,14 +176,14 @@ oc get pod -l app=llama-stack -n redhat-ods-applications \
 
 CI workflow (`.github/workflows/provision.yml`) runs on PRs and supports image overrides:
 - `catalog_image`: Custom RHOAI catalog source
-- `llama_stack_image`: Custom Llama Stack distro image
-- `llama_stack_operator_image`: Custom operator image
+- `ogx_image`: Custom OGX distro image
+- `operator_image`: Custom operator image
 
 This enables testing ODH/upstream builds before they're released.
 
 ## Contributing
 
 Contributions welcome in:
-- Additional demo scripts (reuse from [llama-stack-demos](https://github.com/opendatahub-io/llama-stack-demos))
+- Additional demo scripts
 - Helm chart improvements and new subcharts
 - CI/CD improvements and test coverage

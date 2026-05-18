@@ -26,7 +26,7 @@ check_required_key() {
   case "$key_name" in
     SHOWROOM_OPENAI_API_KEY)
       local val
-      val="$(read_yaml llamastack.openaiApiKey)"
+      val="$(read_yaml ogx.openaiApiKey)"
       [ -n "$val" ] && return 0
       val="$(read_yaml openaiApiKey)"
       [ -n "$val" ] && return 0

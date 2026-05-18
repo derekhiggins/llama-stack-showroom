@@ -1,10 +1,10 @@
-# Local configuration for llama-stack-showroom
+# Local configuration for ogx-showroom
 #
 # Copy this file and fill in your values:
 #   cp values-local.yaml.example values-local.yaml
 #
 # This file is used by:
-#   - helm-provision.sh (llamastack section, passed via -f to Helm)
+#   - provision.sh (ogx section, passed via -f to Helm)
 #   - setup.sh (cluster section)
 #   - deploy-local.sh (devLocal section)
 #   - test.sh, demos (model names, openaiApiKey)
@@ -12,14 +12,14 @@
 # values-local.yaml is gitignored — do not commit it.
 
 # ============================================================
-# LlamaStack Helm values (consumed by charts/llama-stack-rhoai)
+# OGX Helm values (consumed by charts/ogx-rhoai)
 # ============================================================
-# Keys under "llamastack:" are passed to the Helm chart and injected
-# into the LlamaStack pod as env vars. Any value that the LlamaStack
-# server needs at runtime MUST go here — including API keys, auth
+# Keys under "ogx:" are passed to the Helm chart and injected
+# into the OGX pod as env vars. Any value that the OGX server
+# needs at runtime MUST go here — including API keys, auth
 # settings, provider config, and resource limits.
-# See charts/llama-stack-rhoai/values.yaml for the full list.
-llamastack:
+# See charts/ogx-rhoai/values.yaml for the full list.
+ogx:
   inference:
     model: llama-3-2-3b
     vllmUrl: ""              # REQUIRED: e.g. https://your-vllm-inference-endpoint/v1
@@ -32,7 +32,7 @@ llamastack:
     vllmUrl: ""              # REQUIRED: e.g. https://your-vllm-embedding-endpoint/v1
     vllmApiToken: ""         # REQUIRED: your embedding API token
 
-  # OpenAI API key (for multi-agent demo — passed to LlamaStack server)
+  # OpenAI API key (for multi-agent demo — passed to OGX server)
   openaiApiKey: ""
 
 # ============================================================
@@ -47,18 +47,18 @@ cluster:
   pullSecret: ""
 
   # Optional overrides (defaults are usually fine)
-  catalogImage: ""           # default: quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.4
-  operatorChannel: ""        # default: stable-3.4
-  llamaStackImage: ""        # custom LlamaStack image (for testing)
+  catalogImage: ""           # default: quay.io/rhoai/rhoai-fbc-fragment:rhoai-3.5-ea.1
+  operatorChannel: ""        # default: beta
+  ogxImage: ""               # custom OGX image (for testing)
   operatorImage: ""          # custom operator image (for testing)
 
 # ============================================================
 # Local dev deployment (used by deploy-local.sh)
 # ============================================================
 devLocal:
-  llamaStackSourcePath: ""   # e.g. ~/projects/llama-stack
+  ogxSourcePath: ""          # e.g. ~/projects/ogx
   imageNamespace: ""         # default: redhat-ods-applications
-  imageName: ""              # default: llama-stack-dev
+  imageName: ""              # default: ogx-dev
   imageTag: ""               # default: auto-generated with timestamp
   baseImage: ""              # default: auto-detected from operator
   containerTool: ""          # default: podman

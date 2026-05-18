@@ -2,14 +2,14 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: llamastack-allow-ingress
+  name: ogx-allow-ingress
   labels:
-    {{- include "llama-stack-rhoai.labels" . | nindent 4 }}
+    {{- include "ogx-rhoai.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: llama-stack
-      app.kubernetes.io/instance: {{ .Values.llamastack.name }}
+      app: ogx
+      app.kubernetes.io/instance: {{ .Values.ogx.name }}
   policyTypes:
     - Ingress
   ingress:
@@ -18,6 +18,6 @@ spec:
             matchLabels:
               network.openshift.io/policy-group: ingress
       ports:
-        - port: {{ .Values.llamastack.port }}
+        - port: {{ .Values.ogx.port }}
           protocol: TCP
 {{- end }}

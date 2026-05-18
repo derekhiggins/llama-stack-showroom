@@ -5,8 +5,8 @@ inputs:
     description: 'OLM catalog image'
     required: false
     default: ''
-  llama_stack_image:
-    description: 'LLS distro image (extracted from catalog if not provided)'
+  ogx_image:
+    description: 'OGX distro image (extracted from catalog if not provided)'
     required: false
     default: ''
   operator_image:
@@ -54,7 +54,7 @@ runs:
       shell: bash
       env:
         CATALOG_IMAGE: ${{ inputs.catalog_image }}
-        LLAMA_STACK_IMAGE: ${{ inputs.llama_stack_image }}
+        OGX_IMAGE: ${{ inputs.ogx_image }}
         OPERATOR_IMAGE: ${{ inputs.operator_image }}
         ENV_VARS: ${{ inputs.env }}
       run: |
@@ -68,7 +68,7 @@ runs:
         fi
 
         cat > ${{ github.action_path }}/values-local.yaml <<EOF
-        llamastack:
+        ogx:
           inference:
             vllmUrl: "${SHOWROOM_VLLM_URL:-}"
             vllmApiToken: "${SHOWROOM_VLLM_API_TOKEN:-}"
@@ -83,7 +83,7 @@ runs:
         cluster:
           pullSecret: "${SHOWROOM_PULL_SECRET:-}"
           catalogImage: "${CATALOG_IMAGE:-}"
-          llamaStackImage: "${LLAMA_STACK_IMAGE:-}"
+          ogxImage: "${OGX_IMAGE:-}"
           operatorImage: "${OPERATOR_IMAGE:-}"
         EOF
 

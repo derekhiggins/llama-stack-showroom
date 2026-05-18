@@ -1,6 +1,6 @@
 Red Hat OpenShift AI is a flexible, scalable AI/ML platform that enables data scientists and developers to build, deploy, and monitor AI-enabled applications. It provides tools for the full machine learning lifecycle.
 
-LlamaStack is an open-source framework that provides standardized APIs for building AI applications. It supports various AI capabilities including inference, RAG (Retrieval-Augmented Generation), and agent-based workflows.
+OGX is an open-source framework that provides standardized APIs for building AI applications. It supports various AI capabilities including inference, RAG (Retrieval-Augmented Generation), and agent-based workflows.
 
 The RAG (Retrieval-Augmented Generation) pattern combines vector search with large language models to provide contextually relevant answers. Documents are embedded into vectors, stored in a vector database, and retrieved to augment LLM prompts.
 

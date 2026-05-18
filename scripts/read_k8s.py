@@ -7,7 +7,7 @@ Usage as module:
 
 Usage as CLI:
     python scripts/read_k8s.py secret keycloak-secret KEYCLOAK_PASSWORD
-    python scripts/read_k8s.py route llamastack-distribution
+    python scripts/read_k8s.py route ogx-distribution
 """
 
 import os

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Keycloak Setup Script for LlamaStack Auth Demo (Helm in-cluster version)
+Keycloak Setup Script for OGX Auth Demo (Helm in-cluster version)
 
 Configures Keycloak with the necessary realm, client, roles, and users.
 All passwords are read from environment variables injected by the Helm chart.
@@ -32,8 +32,8 @@ class KeycloakSetup:
         self.demo_admin_password = demo_admin_password
         self.demo_user_password = demo_user_password
         self.admin_token = None
-        self.realm_name = "llamastack-demo"
-        self.client_id = "llamastack"
+        self.realm_name = "ogx-demo"
+        self.client_id = "ogx"
 
     def get_admin_token(self) -> str:
         url = f"{self.base_url}/realms/master/protocol/openid-connect/token"
@@ -56,7 +56,7 @@ class KeycloakSetup:
         realm_config = {
             "realm": self.realm_name,
             "enabled": True,
-            "displayName": "LlamaStack Demo Realm",
+            "displayName": "OGX Demo Realm",
             "accessTokenLifespan": 3600,
             "ssoSessionMaxLifespan": 36000,
             "registrationAllowed": False,
@@ -177,7 +177,7 @@ class KeycloakSetup:
         }
         mappers = [
             {
-                "name": "llamastack-roles",
+                "name": "ogx-roles",
                 "protocol": "openid-connect",
                 "protocolMapper": "oidc-usermodel-realm-role-mapper",
                 "consentRequired": False,
@@ -186,13 +186,13 @@ class KeycloakSetup:
                     "userinfo.token.claim": "true",
                     "id.token.claim": "true",
                     "access.token.claim": "true",
-                    "claim.name": "llamastack_roles",
+                    "claim.name": "ogx_roles",
                     "jsonType.label": "String",
                     "full.path": "false"
                 }
             },
             {
-                "name": "llamastack-teams",
+                "name": "ogx-teams",
                 "protocol": "openid-connect",
                 "protocolMapper": "oidc-group-membership-mapper",
                 "consentRequired": False,
@@ -200,7 +200,7 @@ class KeycloakSetup:
                     "full.path": "false",
                     "id.token.claim": "true",
                     "access.token.claim": "true",
-                    "claim.name": "llamastack_teams",
+                    "claim.name": "ogx_teams",
                     "userinfo.token.claim": "true"
                 }
             }
@@ -400,7 +400,7 @@ class KeycloakSetup:
         return success
 
     def setup_all(self) -> bool:
-        print("Starting Keycloak setup for LlamaStack demo...")
+        print("Starting Keycloak setup for OGX demo...")
         try:
             self.admin_token = self.get_admin_token()
             print("Authenticated as admin")

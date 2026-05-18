@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LlamaStack Chat and Embeddings Demo with S3-Backed File Storage
+OGX Chat and Embeddings Demo with S3-Backed File Storage
 
 This script demonstrates how to:
 1. Authenticate with Keycloak to get a JWT token
@@ -13,7 +13,7 @@ This script demonstrates how to:
 8. Generate answers using chat completions with RAG
 
 Usage:
-    uv run demos/rag/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
+    uv run demos/rag/demo.py [OGX_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
 
 The script reads configuration from (in order): command line args,
 environment variables. All arguments are optional if set as env vars.
@@ -22,17 +22,17 @@ Example with no arguments (reads from environment):
     uv run demos/rag/demo.py
 
 Example with URLs only:
-    uv run demos/rag/demo.py https://llamastack-distribution.apps.example.com \
+    uv run demos/rag/demo.py https://ogx-distribution.apps.example.com \
         https://keycloak.apps.example.com
 
 Example with full authentication:
-    uv run demos/rag/demo.py https://llamastack-distribution.apps.example.com \
+    uv run demos/rag/demo.py https://ogx-distribution.apps.example.com \
         https://keycloak.apps.example.com \
         developer dev123
 
 If Keycloak parameters are not provided, the script will run without authentication.
 
-Note: This demo uses the LlamaStack FileAPI with MinIO S3 backend for document storage
+Note: This demo uses the OGX FileAPI with MinIO S3 backend for document storage
 and the vector-io API with Milvus for vector storage.
 """
 
@@ -51,7 +51,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from demos.common.utils import get_keycloak_token, load_demo_config
 
 
-class LlamaStackDemo:
+class OGXDemo:
     def __init__(self, base_url: str, keycloak_url: Optional[str] = None,
                  username: Optional[str] = None, password: Optional[str] = None,
                  client_secret: Optional[str] = None):
@@ -83,11 +83,11 @@ class LlamaStackDemo:
             return False
 
     def check_health(self) -> bool:
-        """Check if LlamaStack API is healthy"""
+        """Check if OGX API is healthy"""
         try:
             response = self.session.get(f"{self.base_url}/v1/health", timeout=10)
             response.raise_for_status()
-            print(f"✓ LlamaStack is healthy")
+            print(f"✓ OGX is healthy")
             return True
         except Exception as e:
             print(f"✗ Health check failed: {e}")
@@ -310,42 +310,42 @@ def main():
     # Load configuration from command line args, secrets file, or environment variables
     config = load_demo_config()
 
-    llamastack_url = config['llamastack_url']
+    ogx_url = config['ogx_url']
     keycloak_url = config['keycloak_url']
     username = config['username']
     password = config['password']
     client_secret = config['client_secret']
 
-    # Validate that we have at least the LlamaStack URL
-    if not llamastack_url:
-        print("Error: LLAMASTACK_URL is required")
-        print("\nUsage: uv run demos/rag/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]")
+    # Validate that we have at least the OGX URL
+    if not ogx_url:
+        print("Error: OGX_URL is required")
+        print("\nUsage: uv run demos/rag/demo.py [OGX_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]")
         print("\nExamples:")
         print("  # Run with configuration from environment:")
         print("  uv run demos/rag/demo.py")
         print("\n  # Run with explicit URLs:")
-        print("  uv run demos/rag/demo.py https://llamastack-distribution.apps.example.com \\")
+        print("  uv run demos/rag/demo.py https://ogx-distribution.apps.example.com \\")
         print("      https://keycloak.apps.example.com")
         print("\n  # Run with full authentication:")
-        print("  uv run demos/rag/demo.py https://llamastack-distribution.apps.example.com \\")
+        print("  uv run demos/rag/demo.py https://ogx-distribution.apps.example.com \\")
         print("      https://keycloak.apps.example.com developer dev123")
         print("\nNote: Run ./test.sh to auto-load credentials from the K8s cluster")
         sys.exit(1)
 
     print("=" * 60)
-    print("LlamaStack Chat and Embeddings Demo")
+    print("OGX Chat and Embeddings Demo")
     print("=" * 60)
-    print(f"\nConnecting to: {llamastack_url}")
+    print(f"\nConnecting to: {ogx_url}")
     if keycloak_url:
         print(f"Keycloak URL: {keycloak_url}")
         print(f"Username: {username}")
 
     # Initialize the demo
-    demo = LlamaStackDemo(llamastack_url, keycloak_url, username, password, client_secret)
+    demo = OGXDemo(ogx_url, keycloak_url, username, password, client_secret)
 
     # Check health
     if not demo.check_health():
-        print("\n✗ Cannot connect to LlamaStack. Please check the URL and try again.")
+        print("\n✗ Cannot connect to OGX. Please check the URL and try again.")
         sys.exit(1)
 
     # List available models
@@ -372,7 +372,7 @@ def main():
         sys.exit(1)
 
     print(f"\n✓ Successfully uploaded document to MinIO S3")
-    print("  File is stored in the 'llamastack-files' bucket")
+    print("  File is stored in the 'ogx-files' bucket")
 
     # Step 2: Retrieve file content from S3
     print("\n" + "=" * 60)
@@ -398,7 +398,7 @@ def main():
     # Define metadata for each chunk based on content
     chunk_metadata = [
         {"source": "rhoai_overview", "topic": "platform"},
-        {"source": "llamastack_intro", "topic": "framework"},
+        {"source": "ogx_intro", "topic": "framework"},
         {"source": "rag_explanation", "topic": "rag"},
         {"source": "vector_db_info", "topic": "vector_database"},
         {"source": "rhoai_features", "topic": "platform"}
@@ -497,12 +497,12 @@ def main():
     print("  2. ✓ Retrieved file content from S3 storage")
     print("  3. ✓ Chunked document into multiple text segments")
     print("  4. ✓ Generated embeddings for document chunks")
-    print("  5. ✓ Created a vector store using LlamaStack vector_io API")
+    print("  5. ✓ Created a vector store using OGX vector_io API")
     print("  6. ✓ Inserted vectors into Milvus for persistent storage")
     print("  7. ✓ Semantic search using Milvus vector similarity")
     print("  8. ✓ Context-aware question answering with chat completions")
     print("\nVerification:")
-    print("  - Check MinIO console to see uploaded file in 'llamastack-files' bucket")
+    print("  - Check MinIO console to see uploaded file in 'ogx-files' bucket")
     print("  - File is persistently stored in S3 and can be reused")
     print("  - Vector embeddings are indexed in Milvus for fast retrieval")
     print("\nTo run your own queries, modify the 'queries' or 'knowledge_base.txt' in scripts/.")

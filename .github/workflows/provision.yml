@@ -15,8 +15,8 @@ on:
         description: 'OLM catalog image (optional)'
         required: false
         type: string
-      llama_stack_image:
-        description: 'Llama Stack image (optional)'
+      ogx_image:
+        description: 'OGX image (optional)'
         required: false
         type: string
       operator_image:
@@ -40,7 +40,7 @@ jobs:
         uses: ./
         with:
           catalog_image: ${{ inputs.catalog_image }}
-          llama_stack_image: ${{ inputs.llama_stack_image }}
+          ogx_image: ${{ inputs.ogx_image }}
           operator_image: ${{ inputs.operator_image }}
           oc_server: ${{ secrets.OC_SERVER }}
           oc_token: ${{ secrets.OC_TOKEN }}
@@ -78,7 +78,7 @@ jobs:
           oc get all -n redhat-ods-applications
 
           echo -e "\n=== Pod Logs (last 50 lines) ==="
-          oc logs -n redhat-ods-applications --tail=-1 -l app=llama-stack || echo "No logs available"
+          oc logs -n redhat-ods-applications --tail=-1 -l app=ogx || echo "No logs available"
 
       - name: Run unprovision.sh
         if: always()

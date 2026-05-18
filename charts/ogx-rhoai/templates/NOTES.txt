@@ -1,0 +1,11 @@
+OGX RHOAI components deployed.
+
+{{- if .Values.route.enabled }}
+
+OGX API route:
+  oc get route {{ .Values.ogx.name }} -n {{ .Release.Namespace }} -o jsonpath='{.spec.host}'
+{{- end }}
+
+Sync secrets to local config for test.sh and demos:
+
+  ./scripts/sync-secrets.sh

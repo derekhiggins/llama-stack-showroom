@@ -48,7 +48,7 @@ oc delete secret pull-secret-brew -n openshift-config --ignore-not-found=true
 oc delete secret rhoai-pull-secret -n openshift-marketplace --ignore-not-found=true
 
 echo "Removing Kyverno policies..."
-oc delete clusterpolicy replace-rhoai-llama-stack-images --ignore-not-found=true
+oc delete clusterpolicy replace-rhoai-ogx-images --ignore-not-found=true
 oc delete clusterpolicy sync-secrets --ignore-not-found=true
 oc delete clusterpolicy add-imagepullsecrets --ignore-not-found=true
 oc delete clusterpolicy replace-image-registry --ignore-not-found=true

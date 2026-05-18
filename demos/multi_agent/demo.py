@@ -4,11 +4,11 @@ Multi-Agent Demo: Triage routing to RAG, Repository Query, and General Knowledge
 
 Agents:
 - Triage Agent: Routes queries to appropriate specialists
-- RAG Agent: Answers from embedded Llama Stack documentation
-- Repo Query Agent: Queries llamastack/llama-stack GitHub via DeepWiki MCP
+- RAG Agent: Answers from embedded OGX documentation
+- Repo Query Agent: Queries ogx-ai/ogx GitHub via DeepWiki MCP
 - General Agent: Handles comparisons and general questions
 
-Usage: uv run demos/multi_agent/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
+Usage: uv run demos/multi_agent/demo.py [OGX_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]
 Config read from: CLI args → environment variables
 """
 
@@ -36,80 +36,80 @@ RAG_MODEL = REPO_QUERY_MODEL = TRIAGE_MODEL = "openai/openai/gpt-4.1-mini"
 GENERAL_MODEL = "openai/openai/gpt-4.1"
 
 
-# Sample documents for the knowledge base - Llama Stack documentation
+# Sample documents for the knowledge base - OGX documentation
 SAMPLE_DOCUMENTS = [
     {
-        "content": """Llama Stack is the open-source framework for building generative AI applications. It defines
-        and standardizes the core building blocks needed to bring generative AI applications to market. Llama Stack
+        "content": """OGX is the open-source framework for building generative AI applications. It defines
+        and standardizes the core building blocks needed to bring generative AI applications to market. OGX
         provides a unified API layer for Inference, RAG, Agents, Tools, Safety, and Evals. It features a plugin
         architecture to support the rich ecosystem of implementations in different environments like local development,
         on-premises, cloud, and mobile. The framework offers prepackaged verified distributions which provide a
         one-stop solution for developers to get started quickly and reliably in any environment. Multiple developer
-        interfaces are available including CLI and SDKs for Python, Node, iOS, and Android. Llama Stack consists of
+        interfaces are available including CLI and SDKs for Python, Node, iOS, and Android. OGX consists of
         a server with multiple pluggable API providers and Client SDKs meant to be used in applications.""",
-        "metadata": {"source": "llama-stack-overview", "topic": "introduction"}
+        "metadata": {"source": "ogx-overview", "topic": "introduction"}
     },
     {
-        "content": """Llama Stack addresses several challenges in building production AI applications through a
+        "content": """OGX addresses several challenges in building production AI applications through a
         service-oriented, API-first approach. It enables developers to start locally with CPU-only setups, move to
         GPU acceleration when needed, and deploy to cloud or edge without code changes. The same APIs and developer
-        experience are available everywhere. Llama Stack provides production-ready building blocks including pre-built
+        experience are available everywhere. OGX provides production-ready building blocks including pre-built
         safety guardrails and content filtering, built-in RAG and agent capabilities, comprehensive evaluation toolkit,
         and full observability and monitoring. The framework offers true provider independence allowing you to swap
         providers without application changes, mix and match best-in-class implementations, and use federation and
         fallback support with no vendor lock-in. The philosophy emphasizes service-oriented design with REST APIs that
         enforce clean interfaces, composability where every component is independent but works together seamlessly,
         and production-ready solutions built for real-world applications.""",
-        "metadata": {"source": "llama-stack-architecture", "topic": "architecture"}
+        "metadata": {"source": "ogx-architecture", "topic": "architecture"}
     },
     {
-        "content": """A Llama Stack Distribution or Distro is a pre-packaged version of Llama Stack with specific
+        "content": """An OGX Distribution or Distro is a pre-packaged version of OGX with specific
         provider configurations for different deployment scenarios. There are three main types of distributions.
         Remotely Hosted Distros are the simplest to consume - you obtain an API key, point to a URL, and have all
-        Llama Stack APIs working out of the box. Providers like Fireworks and Together provide such easy-to-consume
-        distributions. Locally Hosted Distros allow you to run Llama Stack on your own hardware. You can use
+        OGX APIs working out of the box. Providers like Fireworks and Together provide such easy-to-consume
+        distributions. Locally Hosted Distros allow you to run OGX on your own hardware. You can use
         providers like HuggingFace TGI, Fireworks, or Together for inference, or run vLLM or NVIDIA NIM if you have
         GPU access. For regular desktop machines, Ollama can be used for inference. On-device Distros enable running
-        Llama Stack directly on edge devices like mobile phones or tablets, with distributions available for iOS and
+        OGX directly on edge devices like mobile phones or tablets, with distributions available for iOS and
         Android platforms.""",
-        "metadata": {"source": "llama-stack-distributions", "topic": "distributions"}
+        "metadata": {"source": "ogx-distributions", "topic": "distributions"}
     },
     {
-        "content": """An Agent in Llama Stack is a powerful abstraction for building complex AI applications. Agents
+        "content": """An Agent in OGX is a powerful abstraction for building complex AI applications. Agents
         are configured using the AgentConfig class which includes the underlying LLM model to power the agent,
         instructions as a system prompt that defines the agent's behavior, tools which are capabilities the agent
         can use to interact with external systems, and safety shields as guardrails to ensure responsible AI behavior.
         Agents maintain state through sessions which represent a conversation thread. Each interaction with an agent
         is called a turn and consists of input messages from the user, steps representing the agent's internal
-        processing including inference and tool execution, and an output message as the agent's response. The Llama
-        Stack agent framework is built on a modular architecture that allows for flexible and powerful AI applications
+        processing including inference and tool execution, and an output message as the agent's response. The OGX
+        agent framework is built on a modular architecture that allows for flexible and powerful AI applications
         with support for both streaming and non-streaming response modes.""",
-        "metadata": {"source": "llama-stack-agents", "topic": "agents"}
+        "metadata": {"source": "ogx-agents", "topic": "agents"}
     },
     {
         "content": """Retrieval Augmented Generation (RAG) enables applications to reference and recall information
-        from external documents. Llama Stack makes Agentic RAG available through APIs. The workflow involves creating
+        from external documents. OGX makes Agentic RAG available through APIs. The workflow involves creating
         a vector store to hold document embeddings, uploading documents which can be web pages, PDFs, or other content,
         and creating an agent with file_search tool capability. The agent automatically decides when to search the
-        vector store and retrieves relevant context to answer questions. Llama Stack supports various approaches for
+        vector store and retrieves relevant context to answer questions. OGX supports various approaches for
         building RAG applications including a high-level Agent class which is a client wrapper around the Responses
         API with automatic tool execution and session management, best for conversational agents and multi-turn RAG.
         The system handles document chunking, embedding generation, vector storage, and semantic search automatically,
         allowing developers to focus on building their application rather than managing the RAG infrastructure.""",
-        "metadata": {"source": "llama-stack-rag", "topic": "rag"}
+        "metadata": {"source": "ogx-rag", "topic": "rag"}
     },
     {
-        "content": """Tools in Llama Stack are functions that can be invoked by an agent to perform tasks. They are
+        "content": """Tools in OGX are functions that can be invoked by an agent to perform tasks. They are
         organized into tool groups and registered with specific providers. Each tool group represents a collection of
-        related tools from a single provider operating on the same state. Tools are treated as resources in Llama Stack
+        related tools from a single provider operating on the same state. Tools are treated as resources in OGX
         like models - you can register them and have providers for them. When instantiating an agent, you provide it a
         list of tool groups that it has access to. The agent gets the corresponding tool definitions for the specified
-        tool groups and passes them along to the model. Llama Stack allows both server-side and client-side tools.
+        tool groups and passes them along to the model. OGX allows both server-side and client-side tools.
         With server-side tools, agent.create_turn can perform execution of tool calls emitted by the model transparently.
         Built-in providers include web search with options for Brave Search, Bing Search, and Tavily Search, math
         capabilities through WolframAlpha API, and RAG capabilities for knowledge retrieval. If client-side tools are
         provided, the tool call is sent back to the user for execution and optional continuation.""",
-        "metadata": {"source": "llama-stack-tools", "topic": "tools"}
+        "metadata": {"source": "ogx-tools", "topic": "tools"}
     },
 ]
 
@@ -251,28 +251,28 @@ async def main():
     # Load configuration from command line args, secrets file, or environment variables
     config = load_demo_config()
 
-    llamastack_url = config['llamastack_url']
+    ogx_url = config['ogx_url']
     keycloak_url = config['keycloak_url']
     username = config['username']
     password = config['password']
     client_secret = config['client_secret']
 
-    if not llamastack_url:
-        print("Error: LLAMASTACK_URL is required")
-        print("\nUsage: uv run demos/multi_agent/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]")
+    if not ogx_url:
+        print("Error: OGX_URL is required")
+        print("\nUsage: uv run demos/multi_agent/demo.py [OGX_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET]")
         print("\nExample:")
-        print("  uv run demos/multi_agent/demo.py https://llamastack-distribution.apps.example.com \\")
+        print("  uv run demos/multi_agent/demo.py https://ogx-distribution.apps.example.com \\")
         print("      https://keycloak.apps.example.com developer dev123")
         sys.exit(1)
 
-    llamastack_url = llamastack_url.rstrip('/')
+    ogx_url = ogx_url.rstrip('/')
     if keycloak_url:
         keycloak_url = keycloak_url.rstrip('/')
 
     print("=" * 70)
     print("Multi-Agent Research Assistant Demo")
     print("=" * 70)
-    print(f"\nConnecting to: {llamastack_url}")
+    print(f"\nConnecting to: {ogx_url}")
 
     api_key = None
     if keycloak_url and username and password and client_secret:
@@ -292,20 +292,20 @@ async def main():
     print("Initializing Knowledge Base")
     print("=" * 70)
 
-    async with KnowledgeBase(llamastack_url, api_key) as kb:
+    async with KnowledgeBase(ogx_url, api_key) as kb:
         print("\nCreating fresh vector store...")
         if not await kb.create_vector_store() or not await kb.insert_documents(SAMPLE_DOCUMENTS):
             sys.exit(1)
         print("✓ Knowledge base ready")
 
-        # Embed knowledge directly in RAG agent instructions (LlamaStack limitation)
+        # Embed knowledge directly in RAG agent instructions (OGX limitation)
         kb_content = "\n\n".join([
             f"[Source: {doc['metadata']['source']}, Topic: {doc['metadata']['topic']}]\n{doc['content']}"
             for doc in SAMPLE_DOCUMENTS
         ])
 
         provider = MultiProvider(
-            openai_base_url=f"{llamastack_url}/v1",
+            openai_base_url=f"{ogx_url}/v1",
             openai_api_key=api_key,
             unknown_prefix_mode="model_id",
         )
@@ -315,10 +315,10 @@ async def main():
         # =================================================================
         print("\nCreating agents...")
 
-        # Repo Query Agent: Queries llamastack/llama-stack GitHub via MCP
+        # Repo Query Agent: Queries ogx-ai/ogx GitHub via MCP
         repo_query_agent = Agent(
             name="Repo Query Agent",
-            instructions="""You are a repository code specialist for llamastack/llama-stack GitHub repo.
+            instructions="""You are a repository code specialist for ogx-ai/ogx GitHub repo.
             Use ask_question tool to query the repository. Keep responses brief (2-3 sentences).
             Include file paths when relevant. Always use the ask_question tool.""",
             model=REPO_QUERY_MODEL,
@@ -337,7 +337,7 @@ async def main():
         # RAG Agent: Answers from embedded knowledge base, can handoff to Repo Agent
         rag_agent = Agent(
             name="RAG Agent",
-            instructions=f"""You are a Llama Stack knowledge specialist. Provide concise, accurate responses
+            instructions=f"""You are an OGX knowledge specialist. Provide concise, accurate responses
             based on the knowledge base below. Keep answers brief (2-3 sentences max). Cite sources.
 
 KNOWLEDGE BASE:
@@ -366,8 +366,8 @@ details, config options, or code structure), hand off to Repo Query Agent for co
         triage_agent = Agent(
             name="Triage Agent",
             instructions="""Route queries to the right specialist:
-            - RAG Agent: Llama Stack documentation/concepts from knowledge base
-            - Repo Query Agent: llamastack/llama-stack GitHub code/implementation details
+            - RAG Agent: OGX documentation/concepts from knowledge base
+            - Repo Query Agent: ogx-ai/ogx GitHub code/implementation details
             - General Purpose Agent: General questions, comparisons, or anything not covered by RAG/Repo
             Hand off immediately without explanation.""",
             model=TRIAGE_MODEL,
@@ -379,9 +379,9 @@ details, config options, or code structure), hand off to Repo Query Agent for co
 
         # Demo queries
         demo_queries = [
-            "What is Llama Stack and what are its core features?",
+            "What is OGX and what are its core features?",
             "What config options are available to limit the number of tokens in the remote::vllm provider?",
-            "How does Llama Stack compare to LangChain?",
+            "How does OGX compare to LangChain?",
             "What are the benefits of using a multi-agent system?"
         ]
 

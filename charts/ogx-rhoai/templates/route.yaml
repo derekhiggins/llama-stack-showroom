@@ -2,14 +2,14 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: {{ .Values.llamastack.name }}
+  name: {{ .Values.ogx.name }}
   labels:
-    app: {{ .Values.llamastack.name }}
-    {{- include "llama-stack-rhoai.labels" . | nindent 4 }}
+    app: {{ .Values.ogx.name }}
+    {{- include "ogx-rhoai.labels" . | nindent 4 }}
 spec:
   to:
     kind: Service
-    name: {{ .Values.llamastack.name }}-service
+    name: {{ .Values.ogx.name }}-service
     weight: 100
   port:
     targetPort: http

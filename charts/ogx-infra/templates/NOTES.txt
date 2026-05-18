@@ -1,4 +1,4 @@
-LlamaStack infrastructure services have been deployed.
+OGX infrastructure services have been deployed.
 
 Enabled components:
 {{- if index .Values "postgres" "enabled" }}
@@ -21,9 +21,9 @@ Sync generated secrets to local config (required for test.sh and demos):
 
   ./scripts/sync-secrets.sh
 
-Next step: deploy LlamaStack with the llama-stack-rhoai chart:
+Next step: deploy OGX with the ogx-rhoai chart:
 
-  helm install llama-stack-rhoai charts/llama-stack-rhoai \
+  helm install ogx-rhoai charts/ogx-rhoai \
     -n {{ .Release.Namespace }} \
-    --set llamastack.inference.vllmUrl=$VLLM_URL \
-    --set llamastack.inference.vllmApiToken=$VLLM_TOKEN
+    --set ogx.inference.vllmUrl=$VLLM_URL \
+    --set ogx.inference.vllmApiToken=$VLLM_TOKEN

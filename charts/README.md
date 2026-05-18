@@ -1,12 +1,12 @@
-# Helm Charts for LlamaStack on OpenShift
+# Helm Charts for OGX on OpenShift
 
 ## Overview
 
 | Component | What it deploys | Managed by |
 |-----------|----------------|------------|
 | `manifests/` | DSCInitialization, DataScienceCluster | `oc apply` (in provision script) |
-| `llama-stack-infra` | PostgreSQL, etcd, Milvus, MinIO, Keycloak | Helm |
-| `llama-stack-rhoai` | LlamaStackDistribution CR, Route, NetworkPolicy | Helm |
+| `ogx-infra` | PostgreSQL, etcd, Milvus, MinIO, Keycloak | Helm |
+| `ogx-rhoai` | OGXServer CR, Route, NetworkPolicy | Helm |
 
 ## Prerequisites
 
@@ -22,8 +22,8 @@
 cp values-local.yaml.example values-local.yaml
 # Edit values-local.yaml:
 #   - Set cluster.pullSecret (required for setup.sh)
-#   - Set llamastack.inference.vllmUrl and vllmApiToken (required)
-#   - Set llamastack.embedding.vllmUrl and vllmApiToken (required)
+#   - Set ogx.inference.vllmUrl and vllmApiToken (required)
+#   - Set ogx.embedding.vllmUrl and vllmApiToken (required)
 ```
 
 ### Step 2: Set up cluster-level prerequisites
@@ -41,9 +41,9 @@ cp values-local.yaml.example values-local.yaml
 
 This runs the full deployment in order:
 1. `oc apply` DSCInitialization and DataScienceCluster (waits for Ready)
-2. `helm install` llama-stack-infra (PostgreSQL, etcd, Milvus, MinIO, Keycloak)
-3. `helm install` llama-stack-rhoai (LlamaStackDistribution, Route, NetworkPolicy)
-4. Waits for LlamaStackDistribution to be ready
+2. `helm install` ogx-infra (PostgreSQL, etcd, Milvus, MinIO, Keycloak)
+3. `helm install` ogx-rhoai (OGXServer, Route, NetworkPolicy)
+4. Waits for OGXServer to be ready
 
 ### Step 4: Run tests
 
@@ -77,14 +77,14 @@ secrets before generating new ones).
 ### Disable a component
 
 ```bash
-helm install llama-stack-infra charts/llama-stack-infra \
+helm install ogx-infra charts/ogx-infra \
   -n redhat-ods-applications --set keycloak.enabled=false
 ```
 
 ### Provide your own passwords
 
 ```bash
-helm install llama-stack-infra charts/llama-stack-infra \
+helm install ogx-infra charts/ogx-infra \
   -n redhat-ods-applications \
   --set postgres.auth.password=mypassword \
   --set minio.auth.rootPassword=miniopassword \
@@ -94,7 +94,7 @@ helm install llama-stack-infra charts/llama-stack-infra \
 ### Use an existing secret
 
 ```bash
-helm install llama-stack-infra charts/llama-stack-infra \
+helm install ogx-infra charts/ogx-infra \
   -n redhat-ods-applications \
   --set postgres.auth.existingSecret=my-postgres-secret
 ```
@@ -104,7 +104,7 @@ helm install llama-stack-infra charts/llama-stack-infra \
 Add to `values-local.yaml`:
 
 ```yaml
-llamastack:
+ogx:
   auth:
     enabled: false
 ```
@@ -128,9 +128,9 @@ with `helm.sh/resource-policy: keep`:
 | File | Description |
 |------|-------------|
 | dscinitialization.yaml | DSCInitialization CR — managed by `oc apply` to avoid Helm ownership conflicts with the operator |
-| datasciencecluster.yaml | DataScienceCluster CR with llamastackoperator Managed |
+| datasciencecluster.yaml | DataScienceCluster CR with ogx Managed |
 
-### llama-stack-infra
+### ogx-infra
 
 | Subchart | Resources | Ports |
 |----------|-----------|-------|
@@ -140,10 +140,10 @@ with `helm.sh/resource-policy: keep`:
 | minio | Secret, PVC (20Gi), Deployment, Service, Route, NetworkPolicy | 9000, 9001 |
 | keycloak | Secret, Deployment, Service, Route, post-install Job | 8080 |
 
-### llama-stack-rhoai
+### ogx-rhoai
 
 | Template | Description |
 |----------|-------------|
-| llamastackdistribution.yaml | LlamaStackDistribution CR with env vars for inference, embedding, postgres, auth, milvus, S3 |
-| route.yaml | OpenShift Route for LlamaStack API |
+| ogxserver.yaml | OGXServer CR with env vars for inference, embedding, postgres, auth, milvus, S3 |
+| route.yaml | OpenShift Route for OGX API |
 | networkpolicy.yaml | Allow ingress on port 8321 from OpenShift router |

@@ -1,5 +1,5 @@
-llamastack:
-  name: llamastack-distribution
+ogx:
+  name: ogx-distribution
   replicas: 1
   distribution: rh-dev
   port: 8321
@@ -28,7 +28,7 @@ llamastack:
     enabled: true
     issuer: ""
     audience: account
-    jwksUri: http://keycloak:8080/realms/llamastack-demo/protocol/openid-connect/certs
+    jwksUri: http://keycloak:8080/realms/ogx-demo/protocol/openid-connect/certs
     verifyTls: "false"
 
   milvus:
@@ -39,7 +39,7 @@ llamastack:
 
   s3:
     enabled: "true"
-    bucketName: llamastack-files
+    bucketName: ogx-files
     endpointUrl: http://minio:9000
     secretName: minio-secret
     autoCreateBucket: "true"

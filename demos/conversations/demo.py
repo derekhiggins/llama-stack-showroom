@@ -91,18 +91,18 @@ def main():
     # Load configuration
     config = load_demo_config()
 
-    llamastack_url = config['llamastack_url']
+    ogx_url = config['ogx_url']
     keycloak_url = config['keycloak_url']
     username = config['username']
     password = config['password']
     client_secret = config['client_secret']
 
-    if not llamastack_url:
-        print("\nError: LLAMASTACK_URL is required")
+    if not ogx_url:
+        print("\nError: OGX_URL is required")
         print("Set it via environment variables or run through ./test.sh")
         sys.exit(1)
 
-    print(f"\nConnecting to: {llamastack_url}")
+    print(f"\nConnecting to: {ogx_url}")
 
     # Get authentication token if Keycloak is configured
     api_key = "not-needed"
@@ -117,7 +117,7 @@ def main():
 
     # Initialize OpenAI client
     client = OpenAI(
-        base_url=f"{llamastack_url}/v1",
+        base_url=f"{ogx_url}/v1",
         api_key=api_key,
     )
 

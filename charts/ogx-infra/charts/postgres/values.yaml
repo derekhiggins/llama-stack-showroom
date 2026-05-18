@@ -4,8 +4,8 @@ image:
   pullPolicy: IfNotPresent
 
 auth:
-  username: llamastack
-  database: llamastack
+  username: ogx
+  database: ogx
   password: ""
   existingSecret: ""
 

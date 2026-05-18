@@ -24,7 +24,7 @@ print(functools.reduce(lambda d, k: d.get(k, '') if isinstance(d, dict) else '',
 }
 
 # Load credentials from K8s cluster
-export LLAMASTACK_URL="${LLAMASTACK_URL:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" route llamastack-distribution 2>/dev/null || echo "")}"
+export OGX_URL="${OGX_URL:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" route ogx-distribution 2>/dev/null || echo "")}"
 export KEYCLOAK_URL="${KEYCLOAK_URL:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" route keycloak 2>/dev/null || echo "")}"
 KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_CLIENT_SECRET 2>/dev/null || echo "")}"
 KEYCLOAK_USERNAME="${KEYCLOAK_USERNAME:-admin}"
@@ -32,23 +32,23 @@ KEYCLOAK_PASSWORD="${KEYCLOAK_PASSWORD:-$(python3 "${PROJECT_ROOT}/scripts/read_
 
 if [ -n "${KEYCLOAK_URL:-}" ]; then
   echo "Authenticating with Keycloak..."
-  TOKEN_RESPONSE=$(curl -s -X POST "${KEYCLOAK_URL}/realms/llamastack-demo/protocol/openid-connect/token" \
-    -d "client_id=llamastack" \
+  TOKEN_RESPONSE=$(curl -s -X POST "${KEYCLOAK_URL}/realms/ogx-demo/protocol/openid-connect/token" \
+    -d "client_id=ogx" \
     -d "client_secret=${KEYCLOAK_CLIENT_SECRET}" \
     -d "username=${KEYCLOAK_USERNAME}" \
     -d "password=${KEYCLOAK_PASSWORD}" \
     -d "grant_type=password")
 
-  export LLAMASTACK_APIKEY=$(echo "$TOKEN_RESPONSE" | uv run python -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
+  export OGX_APIKEY=$(echo "$TOKEN_RESPONSE" | uv run python -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
   echo "Authentication successful"
 fi
 
 # Set model env vars from values-local.yaml
-INFERENCE_MODEL_NAME="$(read_yaml llamastack.inference.model)"
+INFERENCE_MODEL_NAME="$(read_yaml ogx.inference.model)"
 INFERENCE_MODEL_NAME="${INFERENCE_MODEL_NAME:-llama-3-2-3b}"
-EMBEDDING_MODEL_NAME="$(read_yaml llamastack.embedding.model)"
+EMBEDDING_MODEL_NAME="$(read_yaml ogx.embedding.model)"
 EMBEDDING_MODEL_NAME="${EMBEDDING_MODEL_NAME:-nomic-embed-text-v1.5}"
-EMBEDDING_DIM="$(read_yaml llamastack.embedding.dimension)"
+EMBEDDING_DIM="$(read_yaml ogx.embedding.dimension)"
 EMBEDDING_DIM="${EMBEDDING_DIM:-768}"
 
 export LLM_MODEL="vllm-inference/${INFERENCE_MODEL_NAME}"
@@ -72,7 +72,7 @@ python -m ipykernel install --user --name=rag-venv --display-name "Python 3.13 (
 echo ""
 echo "Starting Jupyter notebook server..."
 echo "  Kernel: Python 3.13 (RAG)"
-echo "  LLAMASTACK_URL: ${LLAMASTACK_URL:-not set}"
+echo "  OGX_URL: ${OGX_URL:-not set}"
 echo ""
 
 cd "$SCRIPT_DIR"

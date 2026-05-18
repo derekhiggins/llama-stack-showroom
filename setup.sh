@@ -24,7 +24,7 @@ source "${SCRIPT_DIR}/scripts/common.sh"
 SHOWROOM_PULL_SECRET="$(read_yaml cluster.pullSecret)"
 SHOWROOM_CATALOG_IMAGE="$(read_yaml cluster.catalogImage)"
 SHOWROOM_OPERATOR_CHANNEL="$(read_yaml cluster.operatorChannel)"
-SHOWROOM_LLAMA_STACK_IMAGE="$(read_yaml cluster.llamaStackImage)"
+SHOWROOM_OGX_IMAGE="$(read_yaml cluster.ogxImage)"
 SHOWROOM_OPERATOR_IMAGE="$(read_yaml cluster.operatorImage)"
 
 # Apply defaults for optional values
@@ -132,7 +132,7 @@ fi
 # Clean up any old policies
 echo ""
 echo "Cleaning up old Kyverno policies..."
-oc delete clusterpolicy sync-secrets add-imagepullsecrets replace-image-registry replace-rhoai-llama-stack-images 2>/dev/null || true
+oc delete clusterpolicy sync-secrets add-imagepullsecrets replace-image-registry replace-rhoai-ogx-images replace-rhoai-llama-stack-images 2>/dev/null || true
 
 # Apply comprehensive policies for OCPBUGS-23901
 echo ""
@@ -151,7 +151,7 @@ echo ""
 echo "Rosa workaround policies applied successfully!"
 
 # Apply custom image policies if configured
-if [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ] || [ -n "$SHOWROOM_OPERATOR_IMAGE" ]; then
+if [ -n "$SHOWROOM_OGX_IMAGE" ] || [ -n "$SHOWROOM_OPERATOR_IMAGE" ]; then
   echo ""
   echo "=========================================="
   echo "Setting up custom image replacement..."
@@ -160,7 +160,7 @@ if [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ] || [ -n "$SHOWROOM_OPERATOR_IMAGE" ]; th
 
   echo "Applying custom image replacement policy..."
   echo "Custom images:"
-  [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ] && echo "  o Llama Stack: ${SHOWROOM_LLAMA_STACK_IMAGE}"
+  [ -n "$SHOWROOM_OGX_IMAGE" ] && echo "  o OGX: ${SHOWROOM_OGX_IMAGE}"
   [ -n "$SHOWROOM_OPERATOR_IMAGE" ] && echo "  o Operator: ${SHOWROOM_OPERATOR_IMAGE}"
   echo ""
 
@@ -168,28 +168,28 @@ if [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ] || [ -n "$SHOWROOM_OPERATOR_IMAGE" ]; th
   POLICY_YAML="apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: replace-rhoai-llama-stack-images
+  name: replace-rhoai-ogx-images
   annotations:
-    policies.kyverno.io/title: Replace RHOAI Llama Stack Images
+    policies.kyverno.io/title: Replace RHOAI OGX Images
     policies.kyverno.io/category: Image Management
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      Replaces RHOAI llama-stack images with custom versions for testing/development.
+      Replaces RHOAI OGX images with custom versions for testing/development.
 spec:
   background: false
   failurePolicy: Ignore
   rules:"
 
-  # Add llama-stack-core replacement rule if configured
-  if [ -n "$SHOWROOM_LLAMA_STACK_IMAGE" ]; then
+  # Add ogx-core replacement rule if configured
+  if [ -n "$SHOWROOM_OGX_IMAGE" ]; then
     POLICY_YAML+="
-$(envsubst < "${SCRIPT_DIR}/policies/replace-llama-stack-core.yaml.template")"
+$(envsubst < "${SCRIPT_DIR}/policies/replace-ogx-core.yaml.template")"
   fi
 
-  # Add llama-stack-operator replacement rule if configured
+  # Add ogx-operator replacement rule if configured
   if [ -n "$SHOWROOM_OPERATOR_IMAGE" ]; then
     POLICY_YAML+="
-$(envsubst < "${SCRIPT_DIR}/policies/replace-llama-stack-operator.yaml.template")"
+$(envsubst < "${SCRIPT_DIR}/policies/replace-ogx-operator.yaml.template")"
   fi
 
   # Apply the policy with retry logic

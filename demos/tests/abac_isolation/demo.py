@@ -3,7 +3,7 @@
 ABAC Resource Isolation Test
 
 This script verifies that Attribute-Based Access Control (ABAC) properly isolates
-resources between different users in a LlamaStack deployment.
+resources between different users in an OGX deployment.
 
 Tests that:
 1. Users can create and access their own resources
@@ -780,7 +780,7 @@ def main():
     # Load configuration
     config = load_demo_config()
 
-    llamastack_url = config['llamastack_url']
+    ogx_url = config['ogx_url']
     keycloak_url = config['keycloak_url']
     client_secret = config['client_secret']
 
@@ -788,8 +788,8 @@ def main():
     password = os.environ.get('KEYCLOAK_DEMO_PASSWORD') or get_secret('keycloak-secret', 'KEYCLOAK_DEMO_PASSWORD')
 
     # Validate required configuration
-    if not llamastack_url:
-        print("Error: LLAMASTACK_URL is required")
+    if not ogx_url:
+        print("Error: OGX_URL is required")
         print("Set it as an environment variable or ensure oc is logged in to the cluster")
         sys.exit(1)
 
@@ -810,7 +810,7 @@ def main():
         sys.exit(1)
 
     # Run the test
-    test = ABACIsolationTest(llamastack_url, keycloak_url, client_secret, password)
+    test = ABACIsolationTest(ogx_url, keycloak_url, client_secret, password)
     success = test.run_test()
 
     sys.exit(0 if success else 1)

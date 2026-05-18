@@ -1,14 +1,14 @@
-# Dockerfile for Deploying Local LlamaStack Changes
+# Dockerfile for Deploying Local OGX Changes
 #
-# This Dockerfile builds a custom LlamaStack image with local source code overlaid
-# on top of the official RHOAI LlamaStack base image. This enables developers to
+# This Dockerfile builds a custom OGX image with local source code overlaid
+# on top of the official RHOAI OGX base image. This enables developers to
 # test their local changes in a remote OpenShift cluster.
 #
 # Usage:
 #   podman build -f Dockerfile.dev \
-#     --build-arg BASE_IMAGE=quay.io/rhoai/odh-llama-stack-core-rhel9:latest \
-#     -t my-registry/llama-stack-dev:tag \
-#     --context ./path/to/llama-stack
+#     --build-arg BASE_IMAGE=quay.io/rhoai/odh-ogx-core-rhel9:latest \
+#     -t my-registry/ogx-dev:tag \
+#     --context ./path/to/ogx
 
 # ARG allows override at build time
 ARG BASE_IMAGE
@@ -18,13 +18,13 @@ FROM ${BASE_IMAGE}
 # Switch to root for installations
 USER 0
 
-# Copy local llama-stack source
-# The build context should be pointed to the llama-stack directory
-COPY --chown=1001:0 . /opt/app-root/src/llama-stack
+# Copy local ogx source
+# The build context should be pointed to the ogx directory
+COPY --chown=1001:0 . /opt/app-root/src/ogx
 
 # Install in editable mode
 # Use --no-deps to avoid reinstalling all dependencies (they're already in base image)
-WORKDIR /opt/app-root/src/llama-stack
+WORKDIR /opt/app-root/src/ogx
 RUN pip install -e . --no-deps
 
 # CRITICAL: The base image contains /opt/app-root/config.yaml which is extracted
@@ -40,4 +40,4 @@ WORKDIR /opt/app-root
 # The entrypoint and cmd are inherited from the base image
 # Labels to identify local build images
 LABEL local-build="true" \
-      description="LlamaStack image with local source overlay for testing"
+      description="OGX image with local source overlay for testing"

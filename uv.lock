@@ -999,63 +999,6 @@ wheels = [
 ]
 
 [[package]]
-name = "llama-stack-client"
-version = "0.7.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "click" },
-    { name = "distro" },
-    { name = "fire" },
-    { name = "httpx" },
-    { name = "pandas" },
-    { name = "prompt-toolkit" },
-    { name = "pyaml" },
-    { name = "pydantic" },
-    { name = "requests" },
-    { name = "rich" },
-    { name = "sniffio" },
-    { name = "termcolor" },
-    { name = "tqdm" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d7/3d/c4a268a4b60feb6f7e6da3fad2504aa157a52384529766560f8f3cfca43f/llama_stack_client-0.7.2.tar.gz", hash = "sha256:0e3458800af6a18fd8fc5e0760ed626931a416f6c1fdf24aeba4001e6fca9aec", size = 372953, upload-time = "2026-04-08T14:19:32.02Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/a8/cc7fa209471abcaac51139b3e6655c3b18ea718f0afa7cfa6ad974dd9eab/llama_stack_client-0.7.2-py3-none-any.whl", hash = "sha256:8b86156f2522c241ae46280e59287b7716c3cdaf016b6477630eb64bd8cbf150", size = 375337, upload-time = "2026-04-08T14:19:30.444Z" },
-]
-
-[[package]]
-name = "llama-stack-showroom"
-version = "0.0.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "jupyter" },
-    { name = "llama-stack-client" },
-    { name = "nbconvert" },
-    { name = "openai" },
-    { name = "openai-agents" },
-    { name = "python-dotenv" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "tabulate" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiohttp", specifier = ">=3.9.0" },
-    { name = "jupyter", specifier = ">=1.0.0" },
-    { name = "llama-stack-client", specifier = ">=0.7.1" },
-    { name = "nbconvert", specifier = ">=7.0.0" },
-    { name = "openai", specifier = ">=1.0.0" },
-    { name = "openai-agents", specifier = ">=0.11.0" },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "requests", specifier = ">=2.31.0" },
-    { name = "tabulate", specifier = ">=0.9.0" },
-]
-
-[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1356,6 +1299,63 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c2/c9/fcfd5d0639222c6eac7f304829b04892ef51c96a75d479214d77e3ce6e33/numpy-2.4.4-cp313-cp313t-win32.whl", hash = "sha256:9c585a1790d5436a5374bac930dad6ed244c046ed91b2b2a3634eb2971d21008", size = 6083477, upload-time = "2026-03-29T13:20:20.195Z" },
     { url = "https://files.pythonhosted.org/packages/d5/e3/3938a61d1c538aaec8ed6fd6323f57b0c2d2d2219512434c5c878db76553/numpy-2.4.4-cp313-cp313t-win_amd64.whl", hash = "sha256:93e15038125dc1e5345d9b5b68aa7f996ec33b98118d18c6ca0d0b7d6198b7e8", size = 12457487, upload-time = "2026-03-29T13:20:22.946Z" },
     { url = "https://files.pythonhosted.org/packages/97/6a/7e345032cc60501721ef94e0e30b60f6b0bd601f9174ebd36389a2b86d40/numpy-2.4.4-cp313-cp313t-win_arm64.whl", hash = "sha256:0dfd3f9d3adbe2920b68b5cd3d51444e13a10792ec7154cd0a2f6e74d4ab3233", size = 10292002, upload-time = "2026-03-29T13:20:25.909Z" },
+]
+
+[[package]]
+name = "ogx-client"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "click" },
+    { name = "distro" },
+    { name = "fire" },
+    { name = "httpx" },
+    { name = "pandas" },
+    { name = "prompt-toolkit" },
+    { name = "pyaml" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "rich" },
+    { name = "sniffio" },
+    { name = "termcolor" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/91/74/3edc7a8f396137741d9b29a728bcf45afd4a8266b40f1080ec0118c52065/ogx_client-1.0.2.tar.gz", hash = "sha256:4f5d0a5285fdbfcd3c260c291d70d325cf44b743a67c51e65d8a0c5f5cd76177", size = 435217, upload-time = "2026-05-13T22:52:04.778Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/fc/4bf0216fd6e13943837f30164937d6db78dd8743424984ce22c763491c22/ogx_client-1.0.2-py3-none-any.whl", hash = "sha256:167ad9f36ec632cd579bb6451dc8137d90d755d78cd7073d8fc9dcc9bf622fa5", size = 309278, upload-time = "2026-05-13T22:52:03.149Z" },
+]
+
+[[package]]
+name = "ogx-showroom"
+version = "0.0.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "jupyter" },
+    { name = "nbconvert" },
+    { name = "ogx-client" },
+    { name = "openai" },
+    { name = "openai-agents" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "tabulate" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.9.0" },
+    { name = "jupyter", specifier = ">=1.0.0" },
+    { name = "nbconvert", specifier = ">=7.0.0" },
+    { name = "ogx-client", specifier = ">=1.0.2" },
+    { name = "openai", specifier = ">=1.0.0" },
+    { name = "openai-agents", specifier = ">=0.11.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "requests", specifier = ">=2.31.0" },
+    { name = "tabulate", specifier = ">=0.9.0" },
 ]
 
 [[package]]

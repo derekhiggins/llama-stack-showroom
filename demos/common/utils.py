@@ -1,5 +1,5 @@
 """
-Common utilities for LlamaStack demos.
+Common utilities for OGX demos.
 
 Provides shared authentication, configuration, and helper functions.
 """
@@ -15,8 +15,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from scripts.read_k8s import get_secret, get_route_url
 
-KEYCLOAK_REALM = "llamastack-demo"
-KEYCLOAK_CLIENT_ID = "llamastack"
+KEYCLOAK_REALM = "ogx-demo"
+KEYCLOAK_CLIENT_ID = "ogx"
 
 
 def load_demo_config(
@@ -41,9 +41,9 @@ def load_demo_config(
         return os.environ.get(env_key)
 
     return {
-        'llamastack_url': get_arg(
-            arg_offset, 'LLAMASTACK_URL',
-            lambda: get_route_url("llamastack-distribution"),
+        'ogx_url': get_arg(
+            arg_offset, 'OGX_URL',
+            lambda: get_route_url("ogx-distribution"),
         ),
         'keycloak_url': get_arg(
             arg_offset + 1, 'KEYCLOAK_URL',
@@ -75,22 +75,6 @@ def get_keycloak_token(
 ) -> str:
     """
     Get JWT access token from Keycloak.
-
-    Args:
-        keycloak_url: Base Keycloak URL (e.g., https://keycloak.example.com)
-        username: Keycloak username
-        password: User password
-        client_secret: OAuth2 client secret
-        verbose: Print authentication progress (default: True)
-        realm: Keycloak realm name (default: llamastack-demo)
-        client_id: OAuth2 client ID (default: llamastack)
-
-    Returns:
-        JWT access token string
-
-    Raises:
-        requests.HTTPError: If authentication fails
-        KeyError: If response doesn't contain access_token
     """
     keycloak_url = keycloak_url.rstrip('/')
     token_url = f"{keycloak_url}/realms/{realm}/protocol/openid-connect/token"

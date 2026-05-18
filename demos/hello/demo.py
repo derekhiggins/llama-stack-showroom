@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Hello World Demo - Minimal LlamaStack Chat Completion Example
+Hello World Demo - Minimal OGX Chat Completion Example
 
-This is the simplest possible LlamaStack demo. It shows how to:
+This is the simplest possible OGX demo. It shows how to:
 1. Load configuration (URLs and credentials)
 2. Optionally authenticate with Keycloak
 3. Send a single chat completion request
@@ -26,24 +26,24 @@ from demos.common.utils import get_keycloak_token, load_demo_config
 
 def main():
     print("=" * 60)
-    print("LlamaStack Hello World Demo")
+    print("OGX Hello World Demo")
     print("=" * 60)
 
     # Load configuration
     config = load_demo_config()
 
-    llamastack_url = config['llamastack_url']
+    ogx_url = config['ogx_url']
     keycloak_url = config['keycloak_url']
     username = config['username']
     password = config['password']
     client_secret = config['client_secret']
 
-    if not llamastack_url:
-        print("\nError: LLAMASTACK_URL is required")
+    if not ogx_url:
+        print("\nError: OGX_URL is required")
         print("Set it via environment variables or run through ./test.sh")
         sys.exit(1)
 
-    print(f"\nConnecting to: {llamastack_url}")
+    print(f"\nConnecting to: {ogx_url}")
 
     # Get authentication token if Keycloak is configured
     api_key = "not-needed"
@@ -56,7 +56,7 @@ def main():
 
     # Initialize OpenAI client
     client = OpenAI(
-        base_url=f"{llamastack_url}/v1",
+        base_url=f"{ogx_url}/v1",
         api_key=api_key,
     )
 

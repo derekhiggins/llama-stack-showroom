@@ -1,14 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "llama-stack-infra.name" -}}
+{{- define "ogx-infra.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "llama-stack-infra.fullname" -}}
+{{- define "ogx-infra.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,23 +24,23 @@ Create a default fully qualified app name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "llama-stack-infra.chart" -}}
+{{- define "ogx-infra.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "llama-stack-infra.labels" -}}
-helm.sh/chart: {{ include "llama-stack-infra.chart" . }}
-{{ include "llama-stack-infra.selectorLabels" . }}
+{{- define "ogx-infra.labels" -}}
+helm.sh/chart: {{ include "ogx-infra.chart" . }}
+{{ include "ogx-infra.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
-{{- define "llama-stack-infra.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "llama-stack-infra.name" . }}
+{{- define "ogx-infra.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "ogx-infra.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}

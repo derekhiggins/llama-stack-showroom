@@ -67,14 +67,14 @@ apply_with_retry() {
 # Requires SCRIPT_DIR to be set.
 load_k8s_credentials() {
   echo "Loading credentials from K8s cluster..."
-  export LLAMASTACK_URL="${LLAMASTACK_URL:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" route llamastack-distribution 2>/dev/null || echo "")}"
+  export OGX_URL="${OGX_URL:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" route ogx-distribution 2>/dev/null || echo "")}"
   export KEYCLOAK_URL="${KEYCLOAK_URL:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" route keycloak 2>/dev/null || echo "")}"
   export KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_CLIENT_SECRET 2>/dev/null || echo "")}"
   export KEYCLOAK_USERNAME="${KEYCLOAK_USERNAME:-admin}"
   export KEYCLOAK_PASSWORD="${KEYCLOAK_PASSWORD:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_PASSWORD 2>/dev/null || echo "")}"
   export KEYCLOAK_DEMO_PASSWORD="${KEYCLOAK_DEMO_PASSWORD:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_DEMO_PASSWORD 2>/dev/null || echo "")}"
 
-  echo "  LLAMASTACK_URL: ${LLAMASTACK_URL:-<not found>}"
+  echo "  OGX_URL: ${OGX_URL:-<not found>}"
   echo "  KEYCLOAK_URL: ${KEYCLOAK_URL:-<not found>}"
   echo ""
 }

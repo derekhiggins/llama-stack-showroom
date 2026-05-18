@@ -1,5 +1,0 @@
-apiVersion: v2
-name: keycloak
-description: Keycloak identity provider for LlamaStack auth demo
-type: application
-version: 0.1.0

@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# deploy-local.sh - Deploy Local LlamaStack Changes
+# deploy-local.sh - Deploy Local OGX Changes
 #
-# This script enables developers to build and deploy their local LlamaStack code
+# This script enables developers to build and deploy their local OGX code
 # changes to a remote OpenShift cluster for testing.
 #
 # Usage:
-#   export LLAMA_STACK_SOURCE_PATH=~/projects/llama-stack
+#   export OGX_SOURCE_PATH=~/projects/ogx
 #   ./deploy-local.sh
 #
 # See README.md for documentation.
@@ -19,11 +19,11 @@ VALUES_FILE="${SCRIPT_DIR}/values-local.yaml"
 source "${SCRIPT_DIR}/scripts/common.sh"
 
 # Load configuration from values-local.yaml with defaults
-LLAMA_STACK_SOURCE_PATH="${LLAMA_STACK_SOURCE_PATH:-$(read_yaml devLocal.llamaStackSourcePath)}"
+OGX_SOURCE_PATH="${OGX_SOURCE_PATH:-$(read_yaml devLocal.ogxSourcePath)}"
 DEV_IMAGE_NAMESPACE="${DEV_IMAGE_NAMESPACE:-$(read_yaml devLocal.imageNamespace)}"
 DEV_IMAGE_NAMESPACE="${DEV_IMAGE_NAMESPACE:-redhat-ods-applications}"
 DEV_IMAGE_NAME="${DEV_IMAGE_NAME:-$(read_yaml devLocal.imageName)}"
-DEV_IMAGE_NAME="${DEV_IMAGE_NAME:-llama-stack-dev}"
+DEV_IMAGE_NAME="${DEV_IMAGE_NAME:-ogx-dev}"
 DEV_IMAGE_TAG="${DEV_IMAGE_TAG:-$(read_yaml devLocal.imageTag)}"
 DEV_IMAGE_TAG="${DEV_IMAGE_TAG:-dev-$(date +%Y%m%d-%H%M%S)}"
 DEV_BASE_IMAGE="${DEV_BASE_IMAGE:-$(read_yaml devLocal.baseImage)}"
@@ -58,7 +58,7 @@ log_error() {
 print_banner() {
   echo ""
   echo "=========================================="
-  echo "  Deploy Local LlamaStack Changes"
+  echo "  Deploy Local OGX Changes"
   echo "=========================================="
   echo ""
 }
@@ -78,7 +78,7 @@ get_base_image() {
 
   if [ -n "${CSV_NAME}" ]; then
     BASE_IMAGE=$(oc get csv "${CSV_NAME}" -n redhat-ods-operator \
-      -o jsonpath='{.spec.relatedImages[?(@.name=="odh_llama_stack_core_image")].image}' 2>/dev/null)
+      -o jsonpath='{.spec.relatedImages[?(@.name=="odh_ogx_core_image")].image}' 2>/dev/null)
 
     if [ -n "${BASE_IMAGE}" ]; then
       # Replace registry.redhat.io with quay.io to match the Kyverno policy in setup.sh
@@ -124,25 +124,25 @@ validate_prerequisites() {
   fi
   log_success "Connected to cluster as $(oc whoami)"
 
-  # Check LLAMA_STACK_SOURCE_PATH
-  if [ -z "${LLAMA_STACK_SOURCE_PATH:-}" ]; then
-    log_error "LLAMA_STACK_SOURCE_PATH not set"
-    log_error "Please set devLocal.llamaStackSourcePath in values-local.yaml or as an environment variable"
-    log_info "Example: export LLAMA_STACK_SOURCE_PATH=~/projects/llama-stack"
+  # Check OGX_SOURCE_PATH
+  if [ -z "${OGX_SOURCE_PATH:-}" ]; then
+    log_error "OGX_SOURCE_PATH not set"
+    log_error "Please set devLocal.ogxSourcePath in values-local.yaml or as an environment variable"
+    log_info "Example: export OGX_SOURCE_PATH=~/projects/ogx"
     exit 1
   fi
 
-  if [ ! -d "${LLAMA_STACK_SOURCE_PATH}" ]; then
-    log_error "LlamaStack source directory not found: ${LLAMA_STACK_SOURCE_PATH}"
+  if [ ! -d "${OGX_SOURCE_PATH}" ]; then
+    log_error "OGX source directory not found: ${OGX_SOURCE_PATH}"
     exit 1
   fi
 
-  if [ ! -f "${LLAMA_STACK_SOURCE_PATH}/setup.py" ] && [ ! -f "${LLAMA_STACK_SOURCE_PATH}/pyproject.toml" ]; then
-    log_error "Not a valid LlamaStack source directory (missing setup.py or pyproject.toml)"
+  if [ ! -f "${OGX_SOURCE_PATH}/setup.py" ] && [ ! -f "${OGX_SOURCE_PATH}/pyproject.toml" ]; then
+    log_error "Not a valid OGX source directory (missing setup.py or pyproject.toml)"
     exit 1
   fi
 
-  log_success "LlamaStack source found: ${LLAMA_STACK_SOURCE_PATH}"
+  log_success "OGX source found: ${OGX_SOURCE_PATH}"
 }
 
 # Build dev image
@@ -155,12 +155,12 @@ build_dev_image() {
   echo ""
   echo "Build configuration:"
   echo "  Base image:   ${BASE_IMAGE}"
-  echo "  Source:       ${LLAMA_STACK_SOURCE_PATH}"
+  echo "  Source:       ${OGX_SOURCE_PATH}"
   echo "  Local image:  ${LOCAL_IMAGE}"
   echo ""
 
   # Build the image
-  cd "${LLAMA_STACK_SOURCE_PATH}"
+  cd "${OGX_SOURCE_PATH}"
 
   if ${CONTAINER_TOOL} build \
     -f "${SCRIPT_DIR}/Dockerfile.dev" \
@@ -203,24 +203,24 @@ apply_kyverno_policy() {
   log_info "Applying Kyverno policy for dev image..."
 
   # Export for envsubst
-  export SHOWROOM_LLAMA_STACK_IMAGE="${PULL_IMAGE}"
+  export SHOWROOM_OGX_IMAGE="${PULL_IMAGE}"
 
   # Build the policy YAML from template
   POLICY_YAML="apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: replace-rhoai-llama-stack-images
+  name: replace-rhoai-ogx-images
   annotations:
-    policies.kyverno.io/title: Replace RHOAI Llama Stack Images
+    policies.kyverno.io/title: Replace RHOAI OGX Images
     policies.kyverno.io/category: Image Management
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      Replaces RHOAI llama-stack images with custom versions for testing/development.
+      Replaces RHOAI OGX images with custom versions for testing/development.
 spec:
   background: false
   failurePolicy: Ignore
   rules:
-$(envsubst < "${SCRIPT_DIR}/policies/replace-llama-stack-core.yaml.template")"
+$(envsubst < "${SCRIPT_DIR}/policies/replace-ogx-core.yaml.template")"
 
   # Apply the policy
   if echo "$POLICY_YAML" | oc apply -f - &>/dev/null; then
@@ -240,9 +240,9 @@ update_deployment() {
   apply_kyverno_policy
 
   # Delete the pod to force recreation with new image
-  log_info "Restarting LlamaStack pod..."
+  log_info "Restarting OGX pod..."
 
-  POD_NAME=$(oc get pods -n ${DEV_IMAGE_NAMESPACE} -l app=llama-stack \
+  POD_NAME=$(oc get pods -n ${DEV_IMAGE_NAMESPACE} -l app=ogx \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 
   if [ -n "${POD_NAME}" ]; then
@@ -252,20 +252,20 @@ update_deployment() {
       log_warn "Failed to delete pod, you may need to delete it manually"
     fi
   else
-    log_warn "No LlamaStack pod found, it may not be deployed yet"
-    log_info "Run ./provision.sh to deploy LlamaStack"
+    log_warn "No OGX pod found, it may not be deployed yet"
+    log_info "Run ./provision.sh to deploy OGX"
     return
   fi
 
   # Wait for new pod to be ready
   log_info "Waiting for new pod to be ready..."
 
-  if oc wait --for=condition=Ready pod -l app=llama-stack \
+  if oc wait --for=condition=Ready pod -l app=ogx \
     -n ${DEV_IMAGE_NAMESPACE} --timeout=300s 2>/dev/null; then
     log_success "Pod is ready"
   else
     log_warn "Timeout waiting for pod to be ready"
-    log_info "Check pod status with: oc get pods -n ${DEV_IMAGE_NAMESPACE} -l app=llama-stack"
+    log_info "Check pod status with: oc get pods -n ${DEV_IMAGE_NAMESPACE} -l app=ogx"
   fi
 }
 
@@ -276,7 +276,7 @@ follow_logs() {
   # Give old pod time to fully terminate to avoid race condition
   sleep 3
 
-  POD_NAME=$(oc get pods -n ${DEV_IMAGE_NAMESPACE} -l app=llama-stack \
+  POD_NAME=$(oc get pods -n ${DEV_IMAGE_NAMESPACE} -l app=ogx \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 
   if [ -z "${POD_NAME}" ]; then
@@ -327,8 +327,8 @@ main() {
   echo ""
   log_success "Local deployment complete!"
   echo ""
-  echo "Your local LlamaStack changes are now running on the cluster."
-  echo "Route: https://$(oc get route llamastack-distribution -n ${DEV_IMAGE_NAMESPACE} -o jsonpath='{.spec.host}' 2>/dev/null)"
+  echo "Your local OGX changes are now running on the cluster."
+  echo "Route: https://$(oc get route ogx-distribution -n ${DEV_IMAGE_NAMESPACE} -o jsonpath='{.spec.host}' 2>/dev/null)"
   echo ""
   echo "To revert to the official image, run: ./provision.sh"
   echo ""

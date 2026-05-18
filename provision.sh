@@ -27,7 +27,7 @@ if [ ! -f "${VALUES_FILE}" ]; then
   echo "Create it with your vLLM credentials:"
   echo ""
   echo "  cat > values-local.yaml <<EOF"
-  echo "  llamastack:"
+  echo "  ogx:"
   echo "    inference:"
   echo '      vllmUrl: "https://your-vllm-inference-endpoint/v1"'
   echo '      vllmApiToken: "your-inference-token"'
@@ -49,22 +49,22 @@ oc wait --for=jsonpath='{.status.phase}'=Ready datasciencecluster/default-dsc --
 echo ""
 
 # Step 2: Infrastructure
-echo "Installing llama-stack-infra..."
-helm upgrade --install llama-stack-infra "${SCRIPT_DIR}/charts/llama-stack-infra" \
+echo "Installing ogx-infra..."
+helm upgrade --install ogx-infra "${SCRIPT_DIR}/charts/ogx-infra" \
   -n "${NAMESPACE}" --create-namespace --wait --timeout 10m
 
 echo ""
 echo "Infrastructure ready."
 echo ""
 
-# Step 3: LlamaStack
-echo "Installing llama-stack-rhoai..."
-helm upgrade --install llama-stack-rhoai "${SCRIPT_DIR}/charts/llama-stack-rhoai" \
+# Step 3: OGX
+echo "Installing ogx-rhoai..."
+helm upgrade --install ogx-rhoai "${SCRIPT_DIR}/charts/ogx-rhoai" \
   -n "${NAMESPACE}" -f "${VALUES_FILE}" --wait --timeout 15m
 
 echo ""
 echo "Waiting for OGXServer to be ready..."
-oc wait --for=jsonpath='{.status.phase}'=Ready ogxserver/llamastack-distribution \
+oc wait --for=jsonpath='{.status.phase}'=Ready ogxserver/ogx-distribution \
   -n "${NAMESPACE}" --timeout=600s
 
 echo ""

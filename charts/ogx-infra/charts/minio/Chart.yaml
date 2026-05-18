@@ -1,5 +1,5 @@
 apiVersion: v2
 name: minio
-description: MinIO object storage for LlamaStack
+description: MinIO object storage for OGX
 type: application
 version: 0.1.0

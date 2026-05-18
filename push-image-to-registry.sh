@@ -10,13 +10,13 @@
 #   ./push-image-to-registry.sh <local-image> <target-namespace> [target-name:tag]
 #
 # Arguments:
-#   local-image:       Local image name:tag (e.g., llama-stack-test:pr-123)
+#   local-image:       Local image name:tag (e.g., ogx-test:pr-123)
 #   target-namespace:  Target namespace in registry (e.g., redhat-ods-applications)
 #   target-name:tag:   Optional target name:tag (defaults to same as local-image)
 #
 # Example:
-#   ./push-image-to-registry.sh llama-stack-test:v1 redhat-ods-applications
-#   PULL_IMAGE="image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/llama-stack-test:v1"
+#   ./push-image-to-registry.sh ogx-test:v1 redhat-ods-applications
+#   PULL_IMAGE="image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/ogx-test:v1"
 
 set -euo pipefail
 

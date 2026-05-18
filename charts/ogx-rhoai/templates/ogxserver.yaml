@@ -1,0 +1,107 @@
+apiVersion: ogx.io/v1beta1
+kind: OGXServer
+metadata:
+  name: {{ .Values.ogx.name }}
+  labels:
+    {{- include "ogx-rhoai.labels" . | nindent 4 }}
+spec:
+  distribution:
+    name: {{ .Values.ogx.distribution }}
+  workload:
+    replicas: {{ .Values.ogx.replicas }}
+    resources:
+      {{- toYaml .Values.ogx.resources | nindent 6 }}
+    overrides:
+      env:
+        # Inference
+        - name: INFERENCE_MODEL
+          value: {{ .Values.ogx.inference.model | quote }}
+        - name: VLLM_API_TOKEN
+          value: {{ .Values.ogx.inference.vllmApiToken | quote }}
+        - name: VLLM_URL
+          value: {{ .Values.ogx.inference.vllmUrl | quote }}
+        {{- if .Values.ogx.embedding.vllmUrl }}
+        # Embedding
+        - name: EMBEDDING_MODEL
+          value: {{ .Values.ogx.embedding.model | quote }}
+        - name: EMBEDDING_PROVIDER
+          value: {{ .Values.ogx.embedding.provider | quote }}
+        - name: EMBEDDING_PROVIDER_MODEL_ID
+          value: {{ .Values.ogx.embedding.providerModelId | quote }}
+        - name: EMBEDDING_DIMENSION
+          value: {{ .Values.ogx.embedding.dimension | quote }}
+        - name: VLLM_EMBEDDING_URL
+          value: {{ .Values.ogx.embedding.vllmUrl | quote }}
+        - name: VLLM_EMBEDDING_API_TOKEN
+          value: {{ .Values.ogx.embedding.vllmApiToken | quote }}
+        - name: VLLM_EMBEDDING_MAX_TOKENS
+          value: {{ .Values.ogx.embedding.maxTokens | quote }}
+        - name: VLLM_EMBEDDING_TLS_VERIFY
+          value: {{ .Values.ogx.embedding.tlsVerify | quote }}
+        {{- end }}
+        # OpenAI
+        - name: OPENAI_API_KEY
+          value: {{ .Values.ogx.openaiApiKey | quote }}
+        # PostgreSQL
+        - name: POSTGRES_HOST
+          value: {{ .Values.ogx.postgres.host | quote }}
+        - name: POSTGRES_PORT
+          value: {{ .Values.ogx.postgres.port | quote }}
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ogx.postgres.secretName }}
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ogx.postgres.secretName }}
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ogx.postgres.secretName }}
+              key: POSTGRES_PASSWORD
+        {{- if .Values.ogx.auth.enabled }}
+        # Auth (Keycloak ABAC)
+        - name: AUTH_ISSUER
+          value: {{ include "ogx-rhoai.authIssuer" . | trim | quote }}
+        - name: AUTH_AUDIENCE
+          value: {{ .Values.ogx.auth.audience | quote }}
+        - name: AUTH_JWKS_URI
+          value: {{ .Values.ogx.auth.jwksUri | quote }}
+        - name: AUTH_VERIFY_TLS
+          value: {{ .Values.ogx.auth.verifyTls | quote }}
+        {{- end }}
+        # Milvus
+        - name: MILVUS_ENDPOINT
+          value: {{ .Values.ogx.milvus.endpoint | quote }}
+        - name: MILVUS_TOKEN
+          value: {{ .Values.ogx.milvus.token | quote }}
+        - name: MILVUS_SECURE
+          value: {{ .Values.ogx.milvus.secure | quote }}
+        - name: MILVUS_CONSISTENCY_LEVEL
+          value: {{ .Values.ogx.milvus.consistencyLevel | quote }}
+        # MinIO / S3
+        - name: ENABLE_S3
+          value: {{ .Values.ogx.s3.enabled | quote }}
+        - name: S3_BUCKET_NAME
+          value: {{ .Values.ogx.s3.bucketName | quote }}
+        - name: S3_ENDPOINT_URL
+          value: {{ .Values.ogx.s3.endpointUrl | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ogx.s3.secretName }}
+              key: MINIO_ROOT_USER
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ogx.s3.secretName }}
+              key: MINIO_ROOT_PASSWORD
+        - name: S3_AUTO_CREATE_BUCKET
+          value: {{ .Values.ogx.s3.autoCreateBucket | quote }}
+        - name: AWS_DEFAULT_REGION
+          value: {{ .Values.ogx.s3.region | quote }}
+  network:
+    port: {{ .Values.ogx.port }}

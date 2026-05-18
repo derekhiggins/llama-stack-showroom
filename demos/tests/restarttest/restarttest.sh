@@ -65,15 +65,15 @@ echo "Saved response ID: ${SAVED_RESPONSE_ID}"
 
 echo ""
 echo "=========================================="
-echo "Step 2: Restarting LlamaStack pod..."
+echo "Step 2: Restarting OGX pod..."
 echo "=========================================="
 echo ""
 
-# Delete the llama stack pod to trigger restart
+# Delete the ogx pod to trigger restart
 POD_NAME=$(oc get pod -l "${POD_LABEL}" -n "${NAMESPACE}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
 
 if [ -z "$POD_NAME" ]; then
-  echo "ERROR: Could not find llama-stack pod"
+  echo "ERROR: Could not find ogx pod"
   exit 1
 fi
 

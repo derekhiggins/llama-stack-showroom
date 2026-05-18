@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-LlamaStack Responses API Demo
+OGX Responses API Demo
 
 This script demonstrates how to:
 1. Authenticate with Keycloak to get a JWT token
-2. Use the OpenAI SDK Responses API (not Chat Completions) to verify LlamaStack API conformance
+2. Use the OpenAI SDK Responses API (not Chat Completions) to verify OGX API conformance
 3. Create multi-turn conversations with system instructions
-4. Track response IDs stored in LlamaStack's database
+4. Track response IDs stored in OGX's database
 
 Usage:
-    uv run demos/responses/demo.py [LLAMASTACK_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET] [--prompt PROMPT]
+    uv run demos/responses/demo.py [OGX_URL] [KEYCLOAK_URL] [USERNAME] [PASSWORD] [CLIENT_SECRET] [--prompt PROMPT]
 
 The script reads configuration from (in order): command line args,
 environment variables. All arguments are optional if set as env vars.
@@ -21,11 +21,11 @@ Example with custom prompt:
     uv run demos/responses/demo.py --prompt "What is RAG?"
 
 Example with URLs only:
-    uv run demos/responses/demo.py https://llamastack-distribution.apps.example.com \
+    uv run demos/responses/demo.py https://ogx-distribution.apps.example.com \
         https://keycloak.apps.example.com
 
 Example with full authentication and custom prompt:
-    uv run demos/responses/demo.py https://llamastack-distribution.apps.example.com \
+    uv run demos/responses/demo.py https://ogx-distribution.apps.example.com \
         https://keycloak.apps.example.com \
         developer dev123 --prompt "Explain embeddings"
 
@@ -95,11 +95,11 @@ class ResponsesDemo:
             return None
 
     def check_health(self) -> bool:
-        """Check if LlamaStack API is healthy"""
+        """Check if OGX API is healthy"""
         try:
             response = requests.get(f"{self.base_url}/v1/health", timeout=10, verify=True)
             response.raise_for_status()
-            print(f"✓ LlamaStack is healthy")
+            print(f"✓ OGX is healthy")
             return True
         except Exception as e:
             print(f"✗ Health check failed: {e}")
@@ -179,7 +179,7 @@ class ResponsesDemo:
             params = {
                 "model": model,
                 "input": user_message,
-                "store": True  # Store response in LlamaStack database
+                "store": True  # Store response in OGX database
             }
 
             if is_continuation:
@@ -191,7 +191,7 @@ class ResponsesDemo:
                 # Start new conversation
                 params["instructions"] = instructions
 
-            # Call OpenAI Responses API - this verifies LlamaStack API conformance
+            # Call OpenAI Responses API - this verifies OGX API conformance
             response = self.client.responses.create(**params)
 
             # Build response data using helper
@@ -266,7 +266,7 @@ class ResponsesDemo:
 def main():
     # Parse command line arguments for demo-specific options
     parser = argparse.ArgumentParser(
-        description='LlamaStack Responses API Demo - Verify OpenAI SDK compatibility',
+        description='OGX Responses API Demo - Verify OpenAI SDK compatibility',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -277,11 +277,11 @@ Examples:
   uv run demos/responses/demo.py --prompt "What is RAG?"
 
   # Run with explicit URLs:
-  uv run demos/responses/demo.py https://llamastack-distribution.apps.example.com \\
+  uv run demos/responses/demo.py https://ogx-distribution.apps.example.com \\
       https://keycloak.apps.example.com
 
   # Run with full authentication and custom prompt:
-  uv run demos/responses/demo.py https://llamastack-distribution.apps.example.com \\
+  uv run demos/responses/demo.py https://ogx-distribution.apps.example.com \\
       https://keycloak.apps.example.com developer dev123 --prompt "Explain embeddings"
         """
     )
@@ -299,28 +299,28 @@ Examples:
     # Pass remaining args to load_demo_config (handles the 5 standard params)
     config = load_demo_config(argv=[sys.argv[0]] + remaining)
 
-    llamastack_url = config['llamastack_url']
+    ogx_url = config['ogx_url']
     keycloak_url = config['keycloak_url']
     username = config['username']
     password = config['password']
     client_secret = config['client_secret']
 
-    # Validate that we have at least the LlamaStack URL
-    if not llamastack_url:
-        print("Error: LLAMASTACK_URL is required")
+    # Validate that we have at least the OGX URL
+    if not ogx_url:
+        print("Error: OGX_URL is required")
         print("\nRun with --help for usage information")
         sys.exit(1)
 
     print("=" * 60)
-    print("LlamaStack Responses API Demo")
+    print("OGX Responses API Demo")
     print("=" * 60)
-    print(f"\nConnecting to: {llamastack_url}")
+    print(f"\nConnecting to: {ogx_url}")
     if keycloak_url:
         print(f"Keycloak URL: {keycloak_url}")
         print(f"Username: {username}")
 
     # Initialize the demo
-    demo = ResponsesDemo(llamastack_url, keycloak_url, username, password, client_secret)
+    demo = ResponsesDemo(ogx_url, keycloak_url, username, password, client_secret)
 
     # Persistence test mode: Load and continue existing conversation
     if args.load_id:
@@ -375,7 +375,7 @@ Examples:
 
     # Check health
     if not demo.check_health():
-        print("\n✗ Cannot connect to LlamaStack. Please check the URL and try again.")
+        print("\n✗ Cannot connect to OGX. Please check the URL and try again.")
         sys.exit(1)
 
     # Define instructions for the conversation
@@ -407,7 +407,7 @@ When answering questions, be concise but informative. Keep all answers brief."""
         print("✅ Demo Complete!")
         print("=" * 60)
         print("\nSingle-turn response completed successfully.")
-        print("OpenAI SDK Responses API compatibility verified with custom prompt.")
+        print("OpenAI SDK Responses API compatibility verified with custom prompt (OGX).")
         print("\nTo see multi-turn conversation demo, run without --prompt option.")
 
         # Save response ID if requested
@@ -420,7 +420,7 @@ When answering questions, be concise but informative. Keep all answers brief."""
         print("Multi-Turn Conversation Demo")
         print("=" * 60)
         print("\nThis demo will show:")
-        print("  1. Using OpenAI SDK Responses API to verify LlamaStack API conformance")
+        print("  1. Using OpenAI SDK Responses API to verify OGX API conformance")
         print("  2. Creating responses with system instructions")
         print("  3. Tracking response IDs for each turn")
         print("  4. Continuing conversations with context")
@@ -476,13 +476,13 @@ When answering questions, be concise but informative. Keep all answers brief."""
         print("✅ Demo Complete!")
         print("=" * 60)
         print("\nThis demo showed:")
-        print("  ✓ OpenAI SDK Responses API compatibility - verified LlamaStack API conformance")
+        print("  ✓ OpenAI SDK Responses API compatibility - verified OGX API conformance")
         print("  ✓ Creating responses with system instructions")
         print("  ✓ Tracking response IDs for each conversation turn")
         print("  ✓ Maintaining conversation context across multiple turns")
         print("\nKey takeaways:")
-        print("  - LlamaStack implements OpenAI-compatible Responses API")
-        print("  - Successfully using OpenAI SDK Responses API verifies API conformance")
+        print("  - OGX implements OpenAI-compatible Responses API")
+        print("  - Successfully using OpenAI SDK Responses API verifies OGX API conformance")
         print("  - Response IDs are unique and trackable across turns")
         print("  - Instructions persist throughout the conversation")
         print("  - Context is maintained by including previous messages")
