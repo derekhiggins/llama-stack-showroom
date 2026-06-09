@@ -35,7 +35,7 @@ export OGX_URL="${OGX_URL:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" route
 export KEYCLOAK_URL="${KEYCLOAK_URL:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" route keycloak 2>/dev/null || echo "")}"
 KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_CLIENT_SECRET 2>/dev/null || echo "")}"
 KEYCLOAK_USERNAME="${KEYCLOAK_USERNAME:-admin}"
-KEYCLOAK_PASSWORD="${KEYCLOAK_PASSWORD:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_PASSWORD 2>/dev/null || echo "")}"
+KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-$(python3 "${PROJECT_ROOT}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_ADMIN_PASSWORD 2>/dev/null || echo "")}"
 
 # Get Keycloak token if configured
 if [ -n "${KEYCLOAK_URL:-}" ]; then
@@ -44,7 +44,7 @@ if [ -n "${KEYCLOAK_URL:-}" ]; then
     -d "client_id=ogx" \
     -d "client_secret=${KEYCLOAK_CLIENT_SECRET}" \
     -d "username=${KEYCLOAK_USERNAME}" \
-    -d "password=${KEYCLOAK_PASSWORD}" \
+    -d "password=${KEYCLOAK_ADMIN_PASSWORD}" \
     -d "grant_type=password")
 
   OGX_APIKEY=$(echo "$TOKEN_RESPONSE" | uv run python -c "import sys, json; print(json.load(sys.stdin)['access_token'])")

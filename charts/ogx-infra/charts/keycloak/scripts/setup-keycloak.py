@@ -7,10 +7,13 @@ All passwords are read from environment variables injected by the Helm chart.
 
 Environment Variables:
     KEYCLOAK_URL: Keycloak base URL (default: http://keycloak:8080)
-    KEYCLOAK_ADMIN_PASSWORD: Admin password (required)
+    KEYCLOAK_ADMIN_LOGIN: Keycloak master realm admin password (required)
     KEYCLOAK_CLIENT_SECRET: Client secret to set (required)
-    KEYCLOAK_PASSWORD: Demo admin user password (required)
-    KEYCLOAK_DEMO_PASSWORD: Demo regular user password (required)
+    KEYCLOAK_ADMIN_PASSWORD: Demo admin user password (required)
+    KEYCLOAK_DEVELOPER_PASSWORD: developer user password (required)
+    KEYCLOAK_DEVELOPER2_PASSWORD: developer2 user password (required)
+    KEYCLOAK_USER_PASSWORD: user password (required)
+    KEYCLOAK_USER2_PASSWORD: user2 password (required)
 """
 
 import os
@@ -24,13 +27,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class KeycloakSetup:
-    def __init__(self, base_url: str, admin_password: str, client_secret: str,
-                 demo_admin_password: str, demo_user_password: str):
+    def __init__(self, base_url: str, admin_login: str, client_secret: str,
+                 passwords: dict):
         self.base_url = base_url.rstrip('/')
-        self.admin_password = admin_password
+        self.admin_login = admin_login
         self.client_secret = client_secret
-        self.demo_admin_password = demo_admin_password
-        self.demo_user_password = demo_user_password
+        self.passwords = passwords
         self.admin_token = None
         self.realm_name = "ogx-demo"
         self.client_id = "ogx"
@@ -40,7 +42,7 @@ class KeycloakSetup:
         data = {
             'client_id': 'admin-cli',
             'username': 'admin',
-            'password': self.admin_password,
+            'password': self.admin_login,
             'grant_type': 'password'
         }
         response = requests.post(url, data=data, verify=False)
@@ -306,7 +308,7 @@ class KeycloakSetup:
                 "lastName": "User",
                 "enabled": True,
                 "emailVerified": True,
-                "credentials": [{"type": "password", "value": self.demo_admin_password, "temporary": False}],
+                "credentials": [{"type": "password", "value": self.passwords['admin'], "temporary": False}],
                 "roles": ["admin"],
                 "teams": ["platform-team"]
             },
@@ -317,7 +319,7 @@ class KeycloakSetup:
                 "lastName": "User",
                 "enabled": True,
                 "emailVerified": True,
-                "credentials": [{"type": "password", "value": self.demo_user_password, "temporary": False}],
+                "credentials": [{"type": "password", "value": self.passwords['developer'], "temporary": False}],
                 "roles": ["developer"],
                 "teams": ["ml-team"]
             },
@@ -328,20 +330,9 @@ class KeycloakSetup:
                 "lastName": "User",
                 "enabled": True,
                 "emailVerified": True,
-                "credentials": [{"type": "password", "value": self.demo_user_password, "temporary": False}],
+                "credentials": [{"type": "password", "value": self.passwords['developer2'], "temporary": False}],
                 "roles": ["developer"],
                 "teams": ["ml-team"]
-            },
-            {
-                "username": "developer3",
-                "email": "developer3@example.com",
-                "firstName": "Developer Three",
-                "lastName": "User",
-                "enabled": True,
-                "emailVerified": True,
-                "credentials": [{"type": "password", "value": self.demo_user_password, "temporary": False}],
-                "roles": ["developer"],
-                "teams": ["data-team"]
             },
             {
                 "username": "user",
@@ -350,7 +341,7 @@ class KeycloakSetup:
                 "lastName": "User",
                 "enabled": True,
                 "emailVerified": True,
-                "credentials": [{"type": "password", "value": self.demo_user_password, "temporary": False}],
+                "credentials": [{"type": "password", "value": self.passwords['user'], "temporary": False}],
                 "roles": ["user"],
                 "teams": ["data-team"]
             },
@@ -361,18 +352,7 @@ class KeycloakSetup:
                 "lastName": "One",
                 "enabled": True,
                 "emailVerified": True,
-                "credentials": [{"type": "password", "value": self.demo_user_password, "temporary": False}],
-                "roles": [],
-                "teams": []
-            },
-            {
-                "username": "user3",
-                "email": "user3@example.com",
-                "firstName": "User",
-                "lastName": "Two",
-                "enabled": True,
-                "emailVerified": True,
-                "credentials": [{"type": "password", "value": self.demo_user_password, "temporary": False}],
+                "credentials": [{"type": "password", "value": self.passwords['user2'], "temporary": False}],
                 "roles": [],
                 "teams": []
             }
@@ -434,21 +414,27 @@ class KeycloakSetup:
 
 def main():
     keycloak_url = os.environ.get('KEYCLOAK_URL', 'http://keycloak:8080')
-    admin_password = os.environ.get('KEYCLOAK_ADMIN_PASSWORD')
+    admin_login = os.environ.get('KEYCLOAK_ADMIN_LOGIN')
     client_secret = os.environ.get('KEYCLOAK_CLIENT_SECRET')
-    demo_admin_password = os.environ.get('KEYCLOAK_PASSWORD')
-    demo_user_password = os.environ.get('KEYCLOAK_DEMO_PASSWORD')
 
-    if not admin_password:
-        print("Error: KEYCLOAK_ADMIN_PASSWORD environment variable is required")
+    if not admin_login:
+        print("Error: KEYCLOAK_ADMIN_LOGIN environment variable is required")
         sys.exit(1)
 
     print(f"Keycloak URL: {keycloak_url}")
 
+    passwords = {}
+    for user, env_var in [
+        ('admin', 'KEYCLOAK_ADMIN_PASSWORD'),
+        ('developer', 'KEYCLOAK_DEVELOPER_PASSWORD'),
+        ('developer2', 'KEYCLOAK_DEVELOPER2_PASSWORD'),
+        ('user', 'KEYCLOAK_USER_PASSWORD'),
+        ('user2', 'KEYCLOAK_USER2_PASSWORD'),
+    ]:
+        passwords[user] = os.environ.get(env_var) or admin_login
+
     setup = KeycloakSetup(
-        keycloak_url, admin_password, client_secret,
-        demo_admin_password or admin_password,
-        demo_user_password or admin_password
+        keycloak_url, admin_login, client_secret, passwords
     )
     success = setup.setup_all()
     sys.exit(0 if success else 1)

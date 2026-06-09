@@ -31,11 +31,12 @@ from scripts.read_k8s import get_secret
 
 
 class ABACIsolationTest:
-    def __init__(self, base_url: str, keycloak_url: str, client_secret: str, password: str):
+    def __init__(self, base_url: str, keycloak_url: str, client_secret: str,
+                 passwords: dict):
         self.base_url = base_url.rstrip('/')
         self.keycloak_url = keycloak_url.rstrip('/')
         self.client_secret = client_secret
-        self.password = password
+        self.passwords = passwords
 
         # Track created resources by user
         self.resources = {
@@ -79,7 +80,7 @@ class ABACIsolationTest:
             access_token = get_keycloak_token(
                 self.keycloak_url,
                 username,
-                self.password,
+                self.passwords[username],
                 self.client_secret,
                 verbose=False
             )
@@ -784,8 +785,8 @@ def main():
     keycloak_url = config['keycloak_url']
     client_secret = config['client_secret']
 
-    # Get demo password from K8s or env var
-    password = os.environ.get('KEYCLOAK_DEMO_PASSWORD') or get_secret('keycloak-secret', 'KEYCLOAK_DEMO_PASSWORD')
+    developer_password = os.environ.get('KEYCLOAK_DEVELOPER_PASSWORD') or get_secret('keycloak-secret', 'KEYCLOAK_DEVELOPER_PASSWORD')
+    user_password = os.environ.get('KEYCLOAK_USER_PASSWORD') or get_secret('keycloak-secret', 'KEYCLOAK_USER_PASSWORD')
 
     # Validate required configuration
     if not ogx_url:
@@ -803,14 +804,17 @@ def main():
         print("Set it as an environment variable or ensure oc is logged in to the cluster")
         sys.exit(1)
 
-    if not password:
-        print("Error: KEYCLOAK_DEMO_PASSWORD is required for this test")
-        print("Ensure oc is logged in to the cluster, or set the password manually:")
-        print("  export KEYCLOAK_DEMO_PASSWORD=your-password")
+    if not developer_password or not user_password:
+        print("Error: KEYCLOAK_DEVELOPER_PASSWORD and KEYCLOAK_USER_PASSWORD are required")
+        print("Ensure oc is logged in to the cluster, or set them manually:")
+        print("  export KEYCLOAK_DEVELOPER_PASSWORD=your-password")
+        print("  export KEYCLOAK_USER_PASSWORD=your-password")
         sys.exit(1)
 
+    passwords = {'developer': developer_password, 'user': user_password}
+
     # Run the test
-    test = ABACIsolationTest(ogx_url, keycloak_url, client_secret, password)
+    test = ABACIsolationTest(ogx_url, keycloak_url, client_secret, passwords)
     success = test.run_test()
 
     sys.exit(0 if success else 1)

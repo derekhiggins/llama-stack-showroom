@@ -32,7 +32,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "keycloak.secretName" . }}
-                  key: KEYCLOAK_ADMIN_PASSWORD
+                  key: KEYCLOAK_ADMIN_LOGIN
             - name: KC_PROXY_HEADERS
               value: forwarded
             - name: KC_DB

@@ -43,26 +43,41 @@ spec:
           env:
             - name: KEYCLOAK_URL
               value: "http://keycloak:8080"
-            - name: KEYCLOAK_ADMIN_PASSWORD
+            - name: KEYCLOAK_ADMIN_LOGIN
               valueFrom:
                 secretKeyRef:
                   name: {{ include "keycloak.secretName" . }}
-                  key: KEYCLOAK_ADMIN_PASSWORD
+                  key: KEYCLOAK_ADMIN_LOGIN
             - name: KEYCLOAK_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ include "keycloak.secretName" . }}
                   key: KEYCLOAK_CLIENT_SECRET
-            - name: KEYCLOAK_PASSWORD
+            - name: KEYCLOAK_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "keycloak.secretName" . }}
-                  key: KEYCLOAK_PASSWORD
-            - name: KEYCLOAK_DEMO_PASSWORD
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: KEYCLOAK_DEVELOPER_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "keycloak.secretName" . }}
-                  key: KEYCLOAK_DEMO_PASSWORD
+                  key: KEYCLOAK_DEVELOPER_PASSWORD
+            - name: KEYCLOAK_DEVELOPER2_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" . }}
+                  key: KEYCLOAK_DEVELOPER2_PASSWORD
+            - name: KEYCLOAK_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" . }}
+                  key: KEYCLOAK_USER_PASSWORD
+            - name: KEYCLOAK_USER2_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" . }}
+                  key: KEYCLOAK_USER2_PASSWORD
           volumeMounts:
             - name: setup-script
               mountPath: /scripts

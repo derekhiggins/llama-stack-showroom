@@ -6,7 +6,7 @@ Usage as module:
     from scripts.read_k8s import get_secret, get_route_url
 
 Usage as CLI:
-    python scripts/read_k8s.py secret keycloak-secret KEYCLOAK_PASSWORD
+    python scripts/read_k8s.py secret keycloak-secret KEYCLOAK_ADMIN_PASSWORD
     python scripts/read_k8s.py route ogx-distribution
 """
 

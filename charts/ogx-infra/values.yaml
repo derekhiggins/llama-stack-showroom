@@ -75,10 +75,13 @@ keycloak:
     repository: quay.io/keycloak/keycloak
     tag: 26.6.1
   auth:
-    adminPassword: ""
+    adminLogin: ""
     clientSecret: ""
-    demoAdminPassword: ""
-    demoUserPassword: ""
+    adminPassword: ""
+    developerPassword: ""
+    developer2Password: ""
+    userPassword: ""
+    user2Password: ""
     dbPassword: ""
   route:
     enabled: true

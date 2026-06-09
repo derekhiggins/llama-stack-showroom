@@ -54,8 +54,8 @@ def load_demo_config(
             lambda: get_secret("keycloak-secret", "KEYCLOAK_USERNAME") or "admin",
         ),
         'password': get_arg(
-            arg_offset + 3, 'KEYCLOAK_PASSWORD',
-            lambda: get_secret("keycloak-secret", "KEYCLOAK_PASSWORD"),
+            arg_offset + 3, 'KEYCLOAK_ADMIN_PASSWORD',
+            lambda: get_secret("keycloak-secret", "KEYCLOAK_ADMIN_PASSWORD"),
         ),
         'client_secret': get_arg(
             arg_offset + 4, 'KEYCLOAK_CLIENT_SECRET',
