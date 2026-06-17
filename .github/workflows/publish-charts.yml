@@ -1,0 +1,42 @@
+name: Publish Helm Charts
+
+on:
+  push:
+    branches:
+      - main
+      - 'release-v*'
+      - 'feature-*'
+    paths:
+      - 'charts/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        chart: [ogx-infra, ogx-rhoai]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Set chart version to branch name
+        run: |
+          branch="${GITHUB_REF_NAME//[^a-zA-Z0-9-]/-}"
+          yq -i ".version = \"0.0.0-${branch}\"" charts/${{ matrix.chart }}/Chart.yaml
+
+      - name: Update dependencies
+        run: helm dependency update charts/${{ matrix.chart }}
+
+      - name: Package chart
+        run: helm package charts/${{ matrix.chart }}
+
+      - name: Push chart
+        run: helm push ${{ matrix.chart }}-*.tgz oci://ghcr.io/${{ github.repository_owner }}/helm-charts
