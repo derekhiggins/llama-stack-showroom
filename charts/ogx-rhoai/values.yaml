@@ -1,7 +1,7 @@
 ogx:
   name: ogx-distribution
   replicas: 1
-  distribution: rh-dev
+  distribution: rh
   port: 8321
 
   inference:

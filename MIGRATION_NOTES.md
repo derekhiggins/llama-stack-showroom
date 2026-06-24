@@ -65,6 +65,21 @@ to `ogx`.
 
 ---
 
+## RHOAI 3.5ea2 (from 3.5ea1)
+
+### Distribution name change
+**Impact:** Configuration change
+**Component:** OGXServer CR
+
+**Description:**
+The distribution identifier changed from `rh-dev` to `rh`, reflecting the
+move from dev-preview to the standard distribution.
+
+**Change required:**
+Updated `charts/ogx-rhoai/values.yaml` distribution from `rh-dev` to `rh`.
+
+---
+
 ## Future versions
 
 <!-- Template:
