@@ -38,7 +38,6 @@ and the vector-io API with Milvus for vector storage.
 
 import sys
 import requests
-import json
 import os
 
 from typing import List, Dict, Any, Optional

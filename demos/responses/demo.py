@@ -35,8 +35,6 @@ Default prompt: "What is a vector database?"
 
 import sys
 import requests
-import json
-import os
 import argparse
 from typing import Optional, Dict, Any, List
 from pathlib import Path
