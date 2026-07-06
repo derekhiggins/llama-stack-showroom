@@ -18,7 +18,6 @@ Environment Variables:
 
 import os
 import sys
-import json
 import requests
 import urllib3
 from typing import Optional

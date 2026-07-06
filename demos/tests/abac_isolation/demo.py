@@ -16,9 +16,8 @@ Usage:
 
 import os
 import sys
-import json
 import io
-from typing import Optional, Dict, Any, List
+from typing import Optional, List
 from pathlib import Path
 from openai import OpenAI
 

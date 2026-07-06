@@ -12,12 +12,12 @@ Usage: uv run demos/multi_agent/demo.py [OGX_URL] [KEYCLOAK_URL] [USERNAME] [PAS
 Config read from: CLI args → environment variables
 """
 
-import asyncio, sys, os, requests, json, traceback, aiohttp, subprocess
+import asyncio, sys, traceback, aiohttp
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from datetime import datetime
 from tabulate import tabulate
-from agents import Agent, Runner, RunConfig, MultiProvider, FunctionTool, HostedMCPTool
+from agents import Agent, Runner, RunConfig, MultiProvider, HostedMCPTool
 
 # Add project root to path for imports
 PROJECT_ROOT = Path(__file__).parent.parent.parent
