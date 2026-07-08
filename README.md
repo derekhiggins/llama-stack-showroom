@@ -38,7 +38,11 @@ Reference architecture and CI for [OGX](https://github.com/ogx-ai/ogx) on Red Ha
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
 
-## Setup
+## Helm Charts
+
+Pre-built Helm charts are published to `oci://quay.io/opendatahub/ogx-showroom-{infra,rhoai}`. See the [Helm Getting Started](docs/helm-getting-started.md) guide for standalone installation without cloning this repo.
+
+## Setup (from source)
 
 Create local config file (see `values-local.yaml.example` for details):
 ```bash
