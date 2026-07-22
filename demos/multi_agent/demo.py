@@ -26,8 +26,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from demos.common.utils import get_keycloak_token, load_demo_config
 
 
-# Configuration (embedding model loaded from env in main())
-EMBEDDING_DIMENSION = 768
+# Configuration
 DEFAULT_VECTOR_STORE_NAME = "multi-agent-kb"
 MCP_DEEPWIKI_URL = "https://mcp.deepwiki.com/mcp"
 HTTP_TIMEOUT_SECONDS = 30
@@ -118,10 +117,12 @@ SAMPLE_DOCUMENTS = [
 class KnowledgeBase:
     """Manages vector store for document retrieval"""
 
-    def __init__(self, base_url: str, jwt_token: str, embedding_model: str = "vllm-embedding/nomic-embed-text-v1.5"):
+    def __init__(self, base_url: str, jwt_token: str, embedding_model: str = "vllm-embedding/nomic-embed-text-v1.5",
+                 embedding_dimension: int = 768):
         self.base_url = base_url.rstrip('/')
         self.jwt_token = jwt_token
         self.embedding_model = embedding_model
+        self.embedding_dimension = embedding_dimension
         self.vector_store_id = None
         self.session = None
         self.timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT_SECONDS)
@@ -150,7 +151,7 @@ class KnowledgeBase:
             name = name or f"{DEFAULT_VECTOR_STORE_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             async with self.session.post(f"{self.base_url}/v1/vector_stores", json={
                 "vector_store_id": name, "embedding_model": self.embedding_model,
-                "embedding_dimension": EMBEDDING_DIMENSION, "provider_id": "milvus-remote"
+                "embedding_dimension": self.embedding_dimension, "provider_id": "milvus-remote"
             }) as response:
                 if response.status in [200, 201]:
                     self.vector_store_id = (await response.json()).get('id')
@@ -292,7 +293,9 @@ async def main():
     print("Initializing Knowledge Base")
     print("=" * 70)
 
-    async with KnowledgeBase(ogx_url, api_key, embedding_model=config['embedding_model']) as kb:
+    async with KnowledgeBase(ogx_url, api_key,
+                             embedding_model=config['embedding_model'],
+                             embedding_dimension=config['embedding_dimension']) as kb:
         print("\nCreating fresh vector store...")
         if not await kb.create_vector_store() or not await kb.insert_documents(SAMPLE_DOCUMENTS):
             sys.exit(1)
