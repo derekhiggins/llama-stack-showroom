@@ -43,7 +43,7 @@ def print_message(role: str, content: str):
 def create_response_in_conversation(client: OpenAI, conversation_id: str,
                                     user_message: str,
                                     instructions: str = None,
-                                    model: str = "vllm-inference/llama-3-2-3b"):
+                                    model: str = None):
     """
     Send a message in a conversation and get AI response.
     Uses Responses API with conversation_id to maintain state.
@@ -96,6 +96,7 @@ def main():
     username = config['username']
     password = config['password']
     client_secret = config['client_secret']
+    inference_model = config['inference_model']
 
     if not ogx_url:
         print("\nError: OGX_URL is required")
@@ -148,7 +149,8 @@ def main():
         client,
         conversation_id,
         "I want to get living quarters for a rabbit. What is it called? It begins with 'hu'.",
-        instructions=instructions
+        instructions=instructions,
+        model=inference_model
     )
 
     if not response1:
@@ -162,7 +164,8 @@ def main():
         client,
         conversation_id,
         "I also have a dog. What are the living quarters for a dog called? It begins with 'ke'.",
-        instructions=instructions
+        instructions=instructions,
+        model=inference_model
     )
 
     if not response2:
@@ -176,7 +179,8 @@ def main():
         client,
         conversation_id,
         "List the living quarters I need for my pets. One begins with 'hu' and one begins with 'ke'.",
-        instructions=instructions
+        instructions=instructions,
+        model=inference_model
     )
 
     if not response3:

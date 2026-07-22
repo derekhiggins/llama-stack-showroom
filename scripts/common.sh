@@ -79,8 +79,26 @@ load_k8s_credentials() {
   export KEYCLOAK_USER_PASSWORD="${KEYCLOAK_USER_PASSWORD:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_USER_PASSWORD 2>/dev/null || echo "")}"
   export KEYCLOAK_USER2_PASSWORD="${KEYCLOAK_USER2_PASSWORD:-$(python3 "${SCRIPT_DIR}/scripts/read_k8s.py" secret keycloak-secret KEYCLOAK_USER2_PASSWORD 2>/dev/null || echo "")}"
 
+  local _inf_model
+  _inf_model="$(read_yaml ogx.inference.model)"
+  if [ -n "$_inf_model" ]; then
+    export INFERENCE_MODEL="${INFERENCE_MODEL:-vllm-inference/${_inf_model}}"
+  fi
+  local _emb_model
+  _emb_model="$(read_yaml ogx.embedding.model)"
+  if [ -n "$_emb_model" ]; then
+    export EMBEDDING_MODEL="${EMBEDDING_MODEL:-vllm-embedding/${_emb_model}}"
+  fi
+  local _emb_dim
+  _emb_dim="$(read_yaml ogx.embedding.dimension)"
+  if [ -n "$_emb_dim" ]; then
+    export EMBEDDING_DIMENSION="${EMBEDDING_DIMENSION:-${_emb_dim}}"
+  fi
+
   echo "  OGX_URL: ${OGX_URL:-<not found>}"
   echo "  KEYCLOAK_URL: ${KEYCLOAK_URL:-<not found>}"
   echo "  GRAFANA_URL: ${GRAFANA_URL:-<not found>}"
+  echo "  INFERENCE_MODEL: ${INFERENCE_MODEL:-<not found>}"
+  echo "  EMBEDDING_MODEL: ${EMBEDDING_MODEL:-<not found>}"
   echo ""
 }

@@ -50,12 +50,14 @@ from demos.common.utils import get_keycloak_token, load_demo_config
 class ResponsesDemo:
     def __init__(self, base_url: str, keycloak_url: Optional[str] = None,
                  username: Optional[str] = None, password: Optional[str] = None,
-                 client_secret: Optional[str] = None):
+                 client_secret: Optional[str] = None,
+                 inference_model: str = "vllm-inference/llama-3-2-3b"):
         self.base_url = base_url.rstrip('/')
         self.keycloak_url = keycloak_url.rstrip('/') if keycloak_url else None
         self.username = username
         self.password = password
         self.client_secret = client_secret
+        self.inference_model = inference_model
 
         # Track response IDs for each conversation turn
         self.response_history: List[Dict[str, Any]] = []
@@ -152,7 +154,7 @@ class ResponsesDemo:
     def create_response(self,
                        user_message: str,
                        instructions: Optional[str] = None,
-                       model: str = "vllm-inference/llama-3-2-3b") -> Optional[Dict[str, Any]]:
+                       model: str = None) -> Optional[Dict[str, Any]]:
         """
         Create a response using the OpenAI SDK Responses API.
         Auto-detects continuation based on response_history.
@@ -175,7 +177,7 @@ class ResponsesDemo:
 
             # Build API call parameters
             params = {
-                "model": model,
+                "model": model or self.inference_model,
                 "input": user_message,
                 "store": True  # Store response in OGX database
             }
@@ -318,7 +320,8 @@ Examples:
         print(f"Username: {username}")
 
     # Initialize the demo
-    demo = ResponsesDemo(ogx_url, keycloak_url, username, password, client_secret)
+    demo = ResponsesDemo(ogx_url, keycloak_url, username, password, client_secret,
+                         inference_model=config['inference_model'])
 
     # Persistence test mode: Load and continue existing conversation
     if args.load_id:

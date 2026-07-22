@@ -24,11 +24,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from demos.common.utils import get_keycloak_token, load_demo_config
 
-EMBEDDING_MODEL = "vllm-embedding/nomic-embed-text-v1.5"
-EMBEDDING_DIMENSION = 768
-INFERENCE_MODEL = "vllm-inference/llama-3-2-3b"
-
-
 def main():
     print("=" * 60)
     print("RAG Demo - file_search + Responses API")
@@ -41,6 +36,9 @@ def main():
     username = config['username']
     password = config['password']
     client_secret = config['client_secret']
+    INFERENCE_MODEL = config['inference_model']
+    EMBEDDING_MODEL = config['embedding_model']
+    EMBEDDING_DIMENSION = config['embedding_dimension']
 
     if not ogx_url:
         print("\nError: OGX_URL is required")

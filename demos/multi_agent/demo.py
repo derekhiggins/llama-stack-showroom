@@ -26,8 +26,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from demos.common.utils import get_keycloak_token, load_demo_config
 
 
-# Configuration
-EMBEDDING_MODEL = "vllm-embedding/nomic-embed-text-v1.5"
+# Configuration (embedding model loaded from env in main())
 EMBEDDING_DIMENSION = 768
 DEFAULT_VECTOR_STORE_NAME = "multi-agent-kb"
 MCP_DEEPWIKI_URL = "https://mcp.deepwiki.com/mcp"
@@ -119,9 +118,10 @@ SAMPLE_DOCUMENTS = [
 class KnowledgeBase:
     """Manages vector store for document retrieval"""
 
-    def __init__(self, base_url: str, jwt_token: str):
+    def __init__(self, base_url: str, jwt_token: str, embedding_model: str = "vllm-embedding/nomic-embed-text-v1.5"):
         self.base_url = base_url.rstrip('/')
         self.jwt_token = jwt_token
+        self.embedding_model = embedding_model
         self.vector_store_id = None
         self.session = None
         self.timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT_SECONDS)
@@ -149,7 +149,7 @@ class KnowledgeBase:
         try:
             name = name or f"{DEFAULT_VECTOR_STORE_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             async with self.session.post(f"{self.base_url}/v1/vector_stores", json={
-                "vector_store_id": name, "embedding_model": EMBEDDING_MODEL,
+                "vector_store_id": name, "embedding_model": self.embedding_model,
                 "embedding_dimension": EMBEDDING_DIMENSION, "provider_id": "milvus-remote"
             }) as response:
                 if response.status in [200, 201]:
@@ -167,7 +167,7 @@ class KnowledgeBase:
         """Generate embeddings for texts"""
         try:
             async with self.session.post(f"{self.base_url}/v1/embeddings",
-                json={"input": texts, "model": EMBEDDING_MODEL}) as response:
+                json={"input": texts, "model": self.embedding_model}) as response:
                 if response.status == 200:
                     return [item['embedding'] for item in (await response.json())['data']]
                 print(f"✗ Failed to generate embeddings: {response.status} - {await response.text()}")
@@ -189,7 +189,7 @@ class KnowledgeBase:
                 "chunk_id": f"{doc['metadata']['source']}_{i}",
                 "content": doc['content'],
                 "embedding": emb,
-                "embedding_model": EMBEDDING_MODEL,
+                "embedding_model": self.embedding_model,
                 "embedding_dimension": len(emb),
                 "chunk_metadata": doc['metadata']
             } for i, (doc, emb) in enumerate(zip(documents, embeddings))]
@@ -292,7 +292,7 @@ async def main():
     print("Initializing Knowledge Base")
     print("=" * 70)
 
-    async with KnowledgeBase(ogx_url, api_key) as kb:
+    async with KnowledgeBase(ogx_url, api_key, embedding_model=config['embedding_model']) as kb:
         print("\nCreating fresh vector store...")
         if not await kb.create_vector_store() or not await kb.insert_documents(SAMPLE_DOCUMENTS):
             sys.exit(1)

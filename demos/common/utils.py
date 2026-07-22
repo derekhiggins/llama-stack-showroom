@@ -69,6 +69,9 @@ def load_demo_config(
             arg_offset + 6, 'GRAFANA_ADMIN_PASSWORD',
             lambda: get_secret("grafana-secret", "GRAFANA_ADMIN_PASSWORD"),
         ),
+        'inference_model': os.environ.get('INFERENCE_MODEL', 'vllm-inference/llama-3-2-3b'),
+        'embedding_model': os.environ.get('EMBEDDING_MODEL', 'vllm-embedding/nomic-embed-text-v1.5'),
+        'embedding_dimension': int(os.environ.get('EMBEDDING_DIMENSION', '768')),
     }
 
 

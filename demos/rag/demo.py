@@ -53,12 +53,18 @@ from demos.common.utils import get_keycloak_token, load_demo_config
 class OGXDemo:
     def __init__(self, base_url: str, keycloak_url: Optional[str] = None,
                  username: Optional[str] = None, password: Optional[str] = None,
-                 client_secret: Optional[str] = None):
+                 client_secret: Optional[str] = None,
+                 inference_model: str = "vllm-inference/llama-3-2-3b",
+                 embedding_model: str = "vllm-embedding/nomic-embed-text-v1.5",
+                 embedding_dimension: int = 768):
         self.base_url = base_url.rstrip('/')
         self.keycloak_url = keycloak_url.rstrip('/') if keycloak_url else None
         self.username = username
         self.password = password
         self.client_secret = client_secret
+        self.inference_model = inference_model
+        self.embedding_model = embedding_model
+        self.embedding_dimension = embedding_dimension
         self.session = requests.Session()
         self.session.verify = True  # Enable SSL verification
 
@@ -135,12 +141,12 @@ class OGXDemo:
             print(f"✗ Failed to list models: {e}")
             return []
 
-    def generate_embeddings(self, texts: List[str], model: str = "vllm-embedding/nomic-embed-text-v1.5") -> List[List[float]]:
+    def generate_embeddings(self, texts: List[str], model: str = None) -> List[List[float]]:
         """Generate embeddings for a list of texts"""
         try:
             payload = {
                 "input": texts,
-                "model": model
+                "model": model or self.embedding_model
             }
             response = self.session.post(
                 f"{self.base_url}/v1/embeddings",
@@ -161,13 +167,13 @@ class OGXDemo:
             print(f"✗ Error generating embeddings: {e}")
             return []
 
-    def create_vector_store(self, name: str, embedding_dimension: int = 768, provider_id: str = "milvus-remote") -> Optional[str]:
+    def create_vector_store(self, name: str, embedding_dimension: int = None, provider_id: str = "milvus-remote") -> Optional[str]:
         """Create a vector store using vector_io API. Returns the vector store ID."""
         try:
             payload = {
                 "vector_store_id": name,
-                "embedding_model": "vllm-embedding/nomic-embed-text-v1.5",
-                "embedding_dimension": embedding_dimension,
+                "embedding_model": self.embedding_model,
+                "embedding_dimension": embedding_dimension or self.embedding_dimension,
                 "provider_id": provider_id
             }
             response = self.session.post(
@@ -199,7 +205,7 @@ class OGXDemo:
                     "chunk_id": f"{doc['metadata']['source']}_{i}",
                     "content": doc['content'],
                     "embedding": embedding,
-                    "embedding_model": "vllm-embedding/nomic-embed-text-v1.5",
+                    "embedding_model": self.embedding_model,
                     "embedding_dimension": len(embedding),
                     "chunk_metadata": {
                         "source": doc['metadata']['source'],
@@ -265,7 +271,7 @@ class OGXDemo:
             print(f"✗ Error querying vectors: {e}")
             return []
 
-    def chat_completion(self, query: str, context: str = "", model: str = "vllm-inference/llama-3-2-3b") -> str:
+    def chat_completion(self, query: str, context: str = "", model: str = None) -> str:
         """Generate a completion using the chat endpoint"""
         try:
             messages = []
@@ -280,7 +286,7 @@ class OGXDemo:
             })
 
             payload = {
-                "model": model,
+                "model": model or self.inference_model,
                 "messages": messages,
                 "max_tokens": 512,
                 "temperature": 0.7
@@ -340,7 +346,10 @@ def main():
         print(f"Username: {username}")
 
     # Initialize the demo
-    demo = OGXDemo(ogx_url, keycloak_url, username, password, client_secret)
+    demo = OGXDemo(ogx_url, keycloak_url, username, password, client_secret,
+                   inference_model=config['inference_model'],
+                   embedding_model=config['embedding_model'],
+                   embedding_dimension=config['embedding_dimension'])
 
     # Check health
     if not demo.check_health():
@@ -437,7 +446,7 @@ def main():
     print("Step 5: Setting up Vector Store (Milvus)")
     print("=" * 60)
 
-    vector_store_id = demo.create_vector_store("rag-demo-kb", embedding_dimension=768)
+    vector_store_id = demo.create_vector_store("rag-demo-kb")
     if not vector_store_id:
         print("\n✗ Failed to create vector store. Exiting.")
         sys.exit(1)
