@@ -31,11 +31,16 @@ from scripts.read_k8s import get_secret
 
 class ABACIsolationTest:
     def __init__(self, base_url: str, keycloak_url: str, client_secret: str,
-                 passwords: dict):
+                 passwords: dict, inference_model: str = "vllm-inference/llama-3-2-3b",
+                 embedding_model: str = "vllm-embedding/nomic-embed-text-v1.5",
+                 embedding_dimension: int = 768):
         self.base_url = base_url.rstrip('/')
         self.keycloak_url = keycloak_url.rstrip('/')
         self.client_secret = client_secret
         self.passwords = passwords
+        self.inference_model = inference_model
+        self.embedding_model = embedding_model
+        self.embedding_dimension = embedding_dimension
 
         # Track created resources by user
         self.resources = {
@@ -108,8 +113,8 @@ class ABACIsolationTest:
 
             payload = {
                 "vector_store_id": name,
-                "embedding_model": "vllm-embedding/nomic-embed-text-v1.5",
-                "embedding_dimension": 768,
+                "embedding_model": self.embedding_model,
+                "embedding_dimension": self.embedding_dimension,
                 "provider_id": "milvus-remote"
             }
 
@@ -213,7 +218,7 @@ class ABACIsolationTest:
         """Create a response (streaming or non-streaming) and track it"""
         try:
             params = {
-                "model": "vllm-inference/llama-3-2-3b",
+                "model": self.inference_model,
                 "input": input_text,
                 "instructions": instructions,
                 "store": True
@@ -813,7 +818,10 @@ def main():
     passwords = {'developer': developer_password, 'user': user_password}
 
     # Run the test
-    test = ABACIsolationTest(ogx_url, keycloak_url, client_secret, passwords)
+    test = ABACIsolationTest(ogx_url, keycloak_url, client_secret, passwords,
+                             inference_model=config['inference_model'],
+                             embedding_model=config['embedding_model'],
+                             embedding_dimension=config['embedding_dimension'])
     success = test.run_test()
 
     sys.exit(0 if success else 1)

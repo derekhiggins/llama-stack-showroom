@@ -65,9 +65,10 @@ def main():
     print("Prompt: 'Say hello in exactly 5 words'")
     print()
 
+    inference_model = config['inference_model']
     try:
         response = client.chat.completions.create(
-            model="vllm-inference/llama-3-2-3b",
+            model=inference_model,
             messages=[
                 {"role": "user", "content": "Say hello in exactly 5 words"}
             ],

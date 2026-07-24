@@ -69,7 +69,21 @@ def load_demo_config(
             arg_offset + 6, 'GRAFANA_ADMIN_PASSWORD',
             lambda: get_secret("grafana-secret", "GRAFANA_ADMIN_PASSWORD"),
         ),
+        'inference_model': os.environ.get('INFERENCE_MODEL', 'vllm-inference/llama-3-2-3b'),
+        'embedding_model': os.environ.get('EMBEDDING_MODEL', 'vllm-embedding/nomic-embed-text-v1.5'),
+        'embedding_dimension': _parse_embedding_dimension(),
     }
+
+
+def _parse_embedding_dimension() -> int:
+    raw = os.environ.get('EMBEDDING_DIMENSION', '768')
+    try:
+        val = int(raw)
+    except ValueError as exc:
+        raise ValueError("EMBEDDING_DIMENSION must be a positive integer") from exc
+    if val <= 0:
+        raise ValueError("EMBEDDING_DIMENSION must be a positive integer")
+    return val
 
 
 def get_keycloak_token(
