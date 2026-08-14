@@ -9,6 +9,9 @@ on:
   pull_request_target:
     branches:
       - main
+  push:
+    branches:
+      - ntsh
   workflow_dispatch:
     inputs:
       catalog_image:
@@ -82,6 +85,13 @@ jobs:
 
           echo -e "\n=== Pod Logs (last 50 lines) ==="
           oc logs -n redhat-ods-applications --tail=-1 -l app=ogx || echo "No logs available"
+
+      - name: Debug - tmate session on failure
+        if: failure()
+        timeout-minutes: 30
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
       - name: Run unprovision.sh
         if: always()
