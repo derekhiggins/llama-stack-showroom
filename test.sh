@@ -31,6 +31,11 @@ check_required_key() {
       val="$(read_yaml openaiApiKey)"
       [ -n "$val" ] && return 0
       ;;
+    SHOWROOM_GEMINI_API_KEY)
+      local val
+      val="$(read_yaml ogx.gemini.apiKey)"
+      [ -n "$val" ] && return 0
+      ;;
   esac
 
   # Fall back to environment variable
