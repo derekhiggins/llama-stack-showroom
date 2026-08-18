@@ -80,6 +80,8 @@ runs:
             providerModelId: "${SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID:-nomic-ai/nomic-embed-text-v1.5}"
             dimension: "${SHOWROOM_EMBEDDING_DIMENSION:-768}"
           openaiApiKey: "${SHOWROOM_OPENAI_API_KEY:-}"
+          gemini:
+            apiKey: "${SHOWROOM_GEMINI_API_KEY:-}"
         cluster:
           pullSecret: "${SHOWROOM_PULL_SECRET:-}"
           catalogImage: "${CATALOG_IMAGE:-}"

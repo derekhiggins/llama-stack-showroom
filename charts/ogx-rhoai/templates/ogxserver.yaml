@@ -42,6 +42,11 @@ spec:
         # OpenAI
         - name: OPENAI_API_KEY
           value: {{ .Values.ogx.openaiApiKey | quote }}
+        {{- if .Values.ogx.gemini.apiKey }}
+        # Gemini (remote::gemini)
+        - name: GEMINI_API_KEY
+          value: {{ .Values.ogx.gemini.apiKey | quote }}
+        {{- end }}
         # PostgreSQL
         - name: POSTGRES_HOST
           value: {{ .Values.ogx.postgres.host | quote }}

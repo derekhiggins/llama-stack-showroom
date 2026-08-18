@@ -23,6 +23,10 @@ ogx:
     vllmApiToken: "your-embedding-token"
   # Optional is openai models required
   openaiApiKey: ""
+  # Optional: enable the Gemini remote inference provider (remote::gemini).
+  # Provide a Google AI Studio API key; leave empty to keep Gemini disabled.
+  gemini:
+    apiKey: ""
 ```
 
 The infra chart has sensible defaults and typically needs no values file.
