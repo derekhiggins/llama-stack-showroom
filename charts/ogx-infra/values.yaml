@@ -13,7 +13,7 @@ postgres:
   resources:
     requests:
       memory: "512Mi"
-      cpu: "500m"
+      cpu: "150m"
     limits:
       memory: "1Gi"
       cpu: "1000m"
@@ -43,7 +43,7 @@ milvus:
   resources:
     requests:
       memory: "1Gi"
-      cpu: "500m"
+      cpu: "150m"
     limits:
       memory: "2Gi"
       cpu: "1000m"
@@ -88,7 +88,7 @@ keycloak:
   resources:
     requests:
       memory: "512Mi"
-      cpu: "500m"
+      cpu: "150m"
     limits:
       memory: "1Gi"
       cpu: "1000m"
