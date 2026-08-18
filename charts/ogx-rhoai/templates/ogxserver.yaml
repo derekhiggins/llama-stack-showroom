@@ -44,6 +44,10 @@ spec:
           value: {{ .Values.ogx.openaiApiKey | quote }}
         {{- if .Values.ogx.gemini.apiKey }}
         # Gemini (remote::gemini)
+        # ENABLE_GEMINI gates the provider_id in the distribution run config
+        # (${env.ENABLE_GEMINI:+gemini}); GEMINI_API_KEY alone is not enough.
+        - name: ENABLE_GEMINI
+          value: "1"
         - name: GEMINI_API_KEY
           value: {{ .Values.ogx.gemini.apiKey | quote }}
         {{- end }}
