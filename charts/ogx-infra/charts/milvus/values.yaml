@@ -9,7 +9,7 @@ persistence:
 resources:
   requests:
     memory: "1Gi"
-    cpu: "500m"
+    cpu: "150m"
   limits:
     memory: "2Gi"
     cpu: "1000m"

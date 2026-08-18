@@ -38,6 +38,24 @@ Reference architecture and CI for [OGX](https://github.com/ogx-ai/ogx) on Red Ha
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
 
+## Cluster Requirements
+
+An OpenShift cluster with the RHOAI operator installed (see `setup.sh`).
+
+Recommended minimum: **3 worker nodes, each 4 vCPU / 32 GiB** (e.g. AWS `m5.xlarge`).
+Three nodes - it tolerates one node going NotReady without losing schedulability.
+Inference/embeddings are external (OpenAI-compatible), so no GPU is required.
+
+Resource budget:
+
+| Consumer | CPU requests | Memory requests | Storage |
+|----------|--------------|-----------------|---------|
+| OGX stack (these charts) | ~2 cores | ~5 GiB | 45 Gi (PVCs) |
+| RHOAI operator + OpenShift platform | ~5 cores | ~19 GiB | - |
+
+The OGX stack is small; most of the budget is RHOAI/OpenShift platform overhead.
+CPU **requests** (reservations), not usage, are what gate scheduling.
+
 ## Helm Charts
 
 Pre-built Helm charts are published to `oci://quay.io/opendatahub/ogx-showroom-{infra,rhoai}`. See the [Helm Getting Started](docs/helm-getting-started.md) guide for standalone installation without cloning this repo.
