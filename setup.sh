@@ -37,6 +37,11 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+if ! command -v yq &> /dev/null; then
+    echo "ERROR: yq is required but not installed"
+    exit 1
+fi
+
 # Validate SHOWROOM_PULL_SECRET is configured
 if [ -z "${SHOWROOM_PULL_SECRET}" ]; then
     echo "ERROR: cluster.pullSecret is not set in ${VALUES_FILE}"
