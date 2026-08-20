@@ -21,19 +21,25 @@
 # See charts/ogx-rhoai/values.yaml for the full list.
 ogx:
   inference:
-    model: llama-3-2-3b
-    vllmUrl: ""              # REQUIRED: e.g. https://your-vllm-inference-endpoint/v1
+    model: Qwen2.5-VL-7B-Instruct
+    vllmUrl: ""              # REQUIRED: e.g. https://litemaas.rhoai.rh-aiservices-bu.com/v1
     vllmApiToken: ""         # REQUIRED: your inference API token
 
   embedding:
-    model: nomic-embed-text-v1.5
-    providerModelId: nomic-ai/nomic-embed-text-v1.5
+    model: Nomic-embed-text-v2-moe
+    providerModelId: Nomic-embed-text-v2-moe
     dimension: "768"
-    vllmUrl: ""              # REQUIRED: e.g. https://your-vllm-embedding-endpoint/v1
+    vllmUrl: ""              # REQUIRED: e.g. https://litemaas.rhoai.rh-aiservices-bu.com/v1
     vllmApiToken: ""         # REQUIRED: your embedding API token
 
   # OpenAI API key (for multi-agent demo - passed to OGX server)
   openaiApiKey: ""
+
+  # Optional: enable the Gemini remote inference provider.
+  # Provide a Google AI Studio API key to register remote::gemini models.
+  # Leave apiKey empty to keep Gemini disabled.
+  gemini:
+    apiKey: ""
 
   # Telemetry: enable OTEL metrics and traces export to the collector.
   # Metrics: OTEL Collector -> Prometheus -> Grafana

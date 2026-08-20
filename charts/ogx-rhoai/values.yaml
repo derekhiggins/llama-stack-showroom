@@ -47,6 +47,11 @@ ogx:
 
   openaiApiKey: ""
 
+  # Optional: enable Google Gemini remote inference provider.
+  # Set apiKey to a Google AI Studio API key to register remote::gemini.
+  gemini:
+    apiKey: ""
+
   telemetry:
     enabled: true
     otlpEndpoint: "http://otel-collector:4318"

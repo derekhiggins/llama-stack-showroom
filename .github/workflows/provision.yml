@@ -54,6 +54,7 @@ jobs:
             SHOWROOM_EMBEDDING_MODEL=${{ vars.LITEMAAS_EMBEDDING_MODEL }}
             SHOWROOM_EMBEDDING_PROVIDER_MODEL_ID=${{ vars.LITEMAAS_EMBEDDING_MODEL }}
             SHOWROOM_OPENAI_API_KEY=${{ secrets.SHOWROOM_OPENAI_API_KEY }}
+            SHOWROOM_GEMINI_API_KEY=${{ secrets.SHOWROOM_GEMINI_API_KEY }}
 
       - name: Run setup.sh
         run: |
